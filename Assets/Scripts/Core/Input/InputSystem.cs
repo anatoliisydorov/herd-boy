@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using Dev.Services;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Layouts;
+using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.Users;
 using static Dev.Input.InputActions;
 
@@ -18,7 +20,8 @@ namespace Dev.Input
     public class InputSystem: IGameplayActions
     {
         public Action<Vector2> OnMovementCall;
-        public Action<Vector2> OnAimingCall;
+        public Action<Vector2> OnMouseAimingCall;
+        public Action<Vector2> OnGamepadAimingCall;
         public Action OnInteractCall;
         public Action OnHerdStateCall;
         public Action<bool> OnHerdTargetCall;
@@ -34,16 +37,22 @@ namespace Dev.Input
 
         public DeviceType CurrentDevice { get => _currentDevice; }
 
+        public VirtualCursor VirtualCursor { get; private set; }
+
         public InputSystem()
         {
             _inputActions.Gameplay.SetCallbacks(this);
 
 #if UNITY_EDITOR || UNITY_STANDALONE
-            _currentDevice = DeviceType.Keyboard;
+            _currentDevice = DeviceType.Gamepad;
 #else
             _currentDevice = DeviceType.Gamepad;
 #endif
             SetEnableGameplayMap(true);
+
+            InputUser.onChange += OnInputUserChanged;
+
+            VirtualCursor = new VirtualCursor();
         }
 
         public void SwitchEnableMaps()
@@ -70,23 +79,24 @@ namespace Dev.Input
 
         public void OnMovement(InputAction.CallbackContext context)
         {
-            CheckDevice(context);
+
             OnMovementCall?.Invoke(context.ReadValue<Vector2>());
-            //Debug.Log($"OnMovement: {context.ReadValue<Vector2>()}");
         }
 
-        public void OnAiming(InputAction.CallbackContext context)
+        public void OnMouseAiming(InputAction.CallbackContext context)
         {
-            CheckDevice(context);
-            OnAimingCall?.Invoke(Vector2.ClampMagnitude(context.ReadValue<Vector2>(), 1f));
-            //Debug.Log($"OnAiming: {context.ReadValue<Vector2>()}");
+            OnMouseAimingCall?.Invoke(Vector2.ClampMagnitude(context.ReadValue<Vector2>(), 1f));
+        }
+
+        public void OnGamepadAiming(InputAction.CallbackContext context)
+        {
+            OnGamepadAimingCall?.Invoke(Vector2.ClampMagnitude(context.ReadValue<Vector2>(), 1f));
         }
 
         public void OnInteract(InputAction.CallbackContext context)
         {
             if (!context.started) return;
             
-            CheckDevice(context);
             OnInteractCall?.Invoke();
             Debug.Log($"OnInteract");
         }
@@ -95,7 +105,6 @@ namespace Dev.Input
         {
             if (!context.started) return;
             
-            CheckDevice(context);
             OnHerdStateCall?.Invoke();
             Debug.Log($"OnHerdState");
         }
@@ -104,7 +113,6 @@ namespace Dev.Input
         {
             if (!context.started) return;
             
-            CheckDevice(context);
             StartHoldProcess("HerdTarget", OnHerdTargetCall);
         }
 
@@ -112,7 +120,6 @@ namespace Dev.Input
         {
             if (!context.started) return;
 
-            CheckDevice(context);
             OnMenuCall?.Invoke();
             Debug.Log($"OnMenu");
         }
@@ -121,7 +128,6 @@ namespace Dev.Input
         {
             if (!context.started) return;
 
-            CheckDevice(context);
             StartHoldProcess("SlingOrThrow", OnSlingOrThrowCall);
         }
 
@@ -152,18 +158,28 @@ namespace Dev.Input
             Debug.Log($"{actionName} completed");
         }
 
-        private void CheckDevice(InputAction.CallbackContext context)
+        private void OnInputUserChanged(InputUser user, InputUserChange change, InputDevice device)
         {
-#if UNITY_EDITOR || UNITY_STANDALONE
-            DeviceType lastUsedDevice = CurrentDevice;
-            if (context.control.device.description.deviceClass == "Gamepad")
-                _currentDevice = DeviceType.Gamepad;
-            else
-                _currentDevice = DeviceType.Keyboard;
-                
-            if (lastUsedDevice != _currentDevice)
-                OnDeviceTypeChanged?.Invoke(_currentDevice);
-#endif
+            if (change == InputUserChange.ControlSchemeChanged)
+            {
+                OnSchemeChanged(user.controlScheme.Value.name);
+            }
+        }
+
+        private void OnSchemeChanged(string newSchemeName)
+        {
+            switch (newSchemeName)
+            {
+                case "Keyboard":
+                    _currentDevice = DeviceType.Keyboard;
+                    break;
+
+                case "Gamepad": 
+                    _currentDevice = DeviceType.Gamepad;
+                    break;
+            }
+
+            OnDeviceTypeChanged?.Invoke(_currentDevice);
         }
     }
 }

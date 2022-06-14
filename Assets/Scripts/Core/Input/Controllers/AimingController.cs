@@ -1,4 +1,5 @@
 using Dev.AimableMechanics;
+using Dev.Character;
 using Dev.Herd;
 using Dev.Services;
 using UnityEngine;
@@ -20,18 +21,17 @@ namespace Dev.Input
         void OnAimingComplete(Vector3 aimingPoint);
     }
 
-    [RequireComponent(typeof(LineRenderer),
-        typeof(Sling))]
+    [RequireComponent(typeof(LineRenderer))]
     public class AimingController: BaseController
     {
         [SerializeField] private float _aimingSpeed = 10f;
 
         private AimingState _state = AimingState.NONE;
+        private Vector2 _gamepadAiming;
         private Vector2 _lastAimScreenPosition;
         private Vector3 _lastAimPoint;
 
         private InputSystem _inputSystem;
-        private VirtualCursor _virtualCursor;
         private Camera _mainCamera;
 
         private IAimable _currentAimable;
@@ -53,7 +53,6 @@ namespace Dev.Input
         {
             base.OnAwake();
 
-            _sling = GetComponent<Sling>();
             _line = GetComponent<LineRenderer>();
 
             SetActiveTrajectory(false);
@@ -64,10 +63,20 @@ namespace Dev.Input
             base.OnStart();
 
             _inputSystem = SingletoneServer.Instance.Get<InputSystem>();
-            _virtualCursor = SingletoneServer.Instance.Get<VirtualCursor>();
             _herd = SingletoneServer.Instance.Get<HerdBehaviour>();
 
+            if (World.GetWorld().GetSingleComponent(out PlayerCharacter player))
+            {
+                _sling = player.Sling;
+            }
+
             _mainCamera = Camera.main;
+        }
+
+        public override void OnUpdate()
+        {
+            base.OnUpdate();
+            UpdateGamepadAiming();
         }
 
         protected override void OnEnabled()
@@ -76,7 +85,8 @@ namespace Dev.Input
 
             InputSystem.OnHerdTargetCall += HandleHerdTarget;
             InputSystem.OnSlingOrThrowCall += HandleSlingOrThrow;
-            InputSystem.OnAimingCall += HandleAiming;
+            InputSystem.OnMouseAimingCall += HandleMouseAiming;
+            InputSystem.OnGamepadAimingCall += HandleGamepadAiming;
         }
 
         protected override void OnDisabled()
@@ -85,7 +95,8 @@ namespace Dev.Input
             
             InputSystem.OnHerdTargetCall -= HandleHerdTarget;
             InputSystem.OnSlingOrThrowCall -= HandleSlingOrThrow;
-            InputSystem.OnAimingCall -= HandleAiming;
+            InputSystem.OnMouseAimingCall -= HandleMouseAiming;
+            InputSystem.OnGamepadAimingCall -= HandleGamepadAiming;
         }
 
         private void HandleHerdTarget(bool startPress)
@@ -99,6 +110,7 @@ namespace Dev.Input
             else if (_state == AimingState.HERD_TARGET && !startPress)
             {
                 CompleteAiming();
+                _gamepadAiming = Vector2.zero;
             }
         }
 
@@ -113,31 +125,41 @@ namespace Dev.Input
             else if (_state == AimingState.SLING_OR_THROW && !startPress)
             {
                 CompleteAiming();
+                _gamepadAiming = Vector2.zero;
             }
         }
 
-        private void HandleAiming(Vector2 aimingChange)
+        private void HandleGamepadAiming(Vector2 aimingChange)
         {
             if (_state == AimingState.NONE) return;
-            
-            if (_inputSystem.CurrentDevice == DeviceType.Gamepad)
-            {
-                Vector2 newAimScreenPosition = _lastAimScreenPosition + (aimingChange.normalized * _aimingSpeed * Dev.Time.GameTime.DeltaTime);
-                _virtualCursor.SetCursorPosition(newAimScreenPosition);
-            }
-            
-            SetAimingPosition(_virtualCursor.GetCursorPosition());
+
+            _gamepadAiming = aimingChange * _aimingSpeed;
+        }
+
+        private void HandleMouseAiming(Vector2 aimingChange)
+        {
+            if (_state == AimingState.NONE) return;
+
+            SetAimingPosition(_inputSystem.VirtualCursor.GetCursorPosition());
+        }
+
+        private void UpdateGamepadAiming()
+        {
+            if (_state == AimingState.NONE || _inputSystem.CurrentDevice == DeviceType.Keyboard) return;
+
+            Vector2 newAimScreenPosition = _lastAimScreenPosition + (_gamepadAiming * Dev.Time.GameTime.DeltaTime);
+            newAimScreenPosition = Extensions.ScreenExtansions.ClampToScreenSize(newAimScreenPosition);
+
+            SetAimingPosition(newAimScreenPosition);
         }
 
         private void StartAiming()
         {
-            _lastAimScreenPosition = new Vector2(-1f, -1f);
-
-            Vector2 startAimingScreenPoint = _mainCamera.WorldToScreenPoint(_currentAimable.GetInitAimingPoint());
-            _virtualCursor.SetCursorPosition(startAimingScreenPoint);
+            _lastAimScreenPosition = _mainCamera.WorldToScreenPoint(_currentAimable.GetInitAimingPoint());
+            _inputSystem.VirtualCursor.SetCursorPosition(_lastAimScreenPosition);
 
             SetActiveTrajectory(true);
-            if (CheckRaycast(out Vector3 resultPosition, startAimingScreenPoint))
+            if (CheckRaycast(out Vector3 resultPosition, _lastAimScreenPosition))
             {
                 _lastAimPoint = resultPosition;
                 RenderTrajectory();
@@ -160,7 +182,6 @@ namespace Dev.Input
         {
             result = Vector3.zero;
             Ray ray = _mainCamera.ScreenPointToRay(aimingScreenPosition);
-            Debug.Log($"Fuuuuuuck: {aimingScreenPosition}");
             if (Physics.Raycast(ray, out RaycastHit hit, 100f))
             {
                 result = hit.point;

@@ -6,6 +6,7 @@ namespace Dev.AimableMechanics
 {
     public class Sling: SmartStart, IAimable
     {
+
         public Vector3 GetAimablePosition()
         {
             return transform.position;
