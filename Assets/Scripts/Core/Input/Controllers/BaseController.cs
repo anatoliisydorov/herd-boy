@@ -2,7 +2,7 @@
 
 namespace Dev.Input
 {
-    public class BaseController : SmartStart, IController
+    public class BaseController : SmartUpdate, IController
     {
         protected ControllersConnector connector { get; private set; }
 

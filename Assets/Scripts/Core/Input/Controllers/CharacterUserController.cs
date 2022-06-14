@@ -1,3 +1,4 @@
+using Dev.Character;
 using Dev.Core;
 using Dev.Movement;
 using Dev.Services;
@@ -7,11 +8,10 @@ namespace Dev.Input
 {
     public class CharacterUserController: BaseController
     {
-        [SerializeField] private BasicMovement _basicMove;
-
         private InputSystem _inputSystem;
 
         private Transform _cameraTransform;
+        private PlayerCharacter _player;
 
         public override void OnAwake()
         {
@@ -25,6 +25,9 @@ namespace Dev.Input
             base.OnStart();
             if (Camera.main != null)
                 _cameraTransform = Camera.main.transform;
+
+            if (World.GetWorld().GetSingleComponent(out PlayerCharacter player))
+                _player = player;
         }
 
         protected override void OnEnabled()
@@ -53,7 +56,7 @@ namespace Dev.Input
 
             Vector3 moveDirection = Vector3.ClampMagnitude(cameraForward * inputMovement.y + cameraRight * inputMovement.x, 1f);
             Debug.Log($"Move call: {moveDirection}");
-            _basicMove.Move(moveDirection.normalized);
+            _player.BasicMovement.Move(moveDirection.normalized);
         }
     }
 }
