@@ -1,4 +1,5 @@
 ﻿using Dev.AimableMechanics;
+using Dev.Hands;
 using Dev.Movement;
 using Dev.Services;
 using UnityEngine;
@@ -8,11 +9,13 @@ namespace Dev.Character
     [RequireComponent(typeof(BasicMovement))]
     public class PlayerCharacter: BaseCharacter
     {
-        [SerializeField] private Sling _sling;
+        [SerializeField] private ThrowAndSling _throw;
+        [SerializeField] private Carrying _carrying;
 
         private BasicMovement _basicMovement;
 
-        public Sling Sling { get => _sling; }
+        public ThrowAndSling Throw { get => _throw; }
+        public Carrying Carrying { get => _carrying; }
         public BasicMovement BasicMovement { get => _basicMovement; }
 
         public override void OnAwake()
@@ -26,6 +29,7 @@ namespace Dev.Character
             }
 
             _basicMovement = GetComponent<BasicMovement>();
+            _basicMovement.IsBlocked = false;
         }
 
         private void OnDestroy()

@@ -36,7 +36,7 @@ namespace Dev.Input
 
         private IAimable _currentAimable;
         private HerdBehaviour _herd;
-        private Sling _sling;
+        private ThrowAndSling _throw;
 
         private LineRenderer _line;
 
@@ -67,7 +67,7 @@ namespace Dev.Input
 
             if (World.GetWorld().GetSingleComponent(out PlayerCharacter player))
             {
-                _sling = player.Sling;
+                _throw = player.Throw;
             }
 
             _mainCamera = Camera.main;
@@ -119,7 +119,7 @@ namespace Dev.Input
             if (_state == AimingState.NONE && startPress)
             {
                 _state = AimingState.SLING_OR_THROW;
-                _currentAimable = _sling;
+                _currentAimable = _throw;
                 StartAiming();
             }
             else if (_state == AimingState.SLING_OR_THROW && !startPress)
