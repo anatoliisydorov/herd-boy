@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Dev.Herd
 {
-    public class HerdBehaviour: SmartStart, IAimable
+    public class HerdBehaviour: MonoBehaviour, IAimable
     {
         [SerializeField] private SheepBehaviour[] _sheeps = new SheepBehaviour[0];
 
@@ -14,15 +14,13 @@ namespace Dev.Herd
 
         [SerializeField] private Transform _targetTransform;
 
-        public override void OnAwake()
+        private void Awake()
         {
-            base.OnAwake();
             Services.SingletoneServer.Instance.Set(this);
         }
 
-        public override void OnStart()
+        private void Start()
         {
-            base.OnStart();
             InitializeSheeps();
         }
 

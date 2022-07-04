@@ -18,10 +18,8 @@ namespace Dev.Character
         public Carrying Carrying { get => _carrying; }
         public BasicMovement BasicMovement { get => _basicMovement; }
 
-        public override void OnAwake()
+        private void Awake()
         {
-            base.OnAwake();
-
             if (!World.GetWorld().AddSingleComponent(this))
             {
                 Destroy(gameObject);

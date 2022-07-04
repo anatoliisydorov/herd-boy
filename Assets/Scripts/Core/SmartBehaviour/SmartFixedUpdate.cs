@@ -10,15 +10,15 @@ namespace Dev.Core
 
     public class SmartFixedUpdate: SmartUpdate, ISmartFixedUpdatable
     {
-        protected override void OnEnabled()
+        protected override void OnEnable()
         {
-            base.OnEnabled();
+            base.OnEnable();
             SingletoneServer.Instance.Get<CoreUpdater>().AddFixedUpdate(this);
         }
 
-        protected override void OnDisabled()
+        protected override void OnDisable()
         {
-            base.OnDisabled();
+            base.OnDisable();
             SingletoneServer.Instance.Get<CoreUpdater>().RemoveFixedUpdate(this);
         }
 

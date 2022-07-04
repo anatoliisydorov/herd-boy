@@ -135,11 +135,11 @@ namespace Dev.Input
         {
             if (_holdProcesses.ContainsKey(actionName))
             {
-                SingletoneServer.Instance.Get<CoroutinesSystem>().EndCouroutine(_holdProcesses[actionName]);
+                CoroutinesSystem.EndCouroutine(_holdProcesses[actionName]);
                 _holdProcesses.Remove(actionName);
             }
 
-            Coroutine holdProcess = SingletoneServer.Instance.Get<CoroutinesSystem>().BeginCoroutine(YIELD_HoldProcess(actionName, actionToCall));
+            Coroutine holdProcess = CoroutinesSystem.BeginCoroutine(YIELD_HoldProcess(actionName, actionToCall));
             _holdProcesses.Add(actionName, holdProcess);
         }
 

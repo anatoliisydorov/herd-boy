@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Default Local Group
+  m_EditorClassIdentifier: 
+  m_GroupName: Default Local Group
+  m_Data:
+    m_SerializedData: []
+  m_GUID: 5926cb945f7a99f4f8165a2dc359f9b5
+  m_SerializeEntries:
+  - m_GUID: 892e9a0533f57344ba9f17982cdd64a6
+    m_Address: Projectile_SlingShot
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: fcad6d4af177799419f90b263fb03220
+    m_Address: Effect_SlingHit
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 58f9f845415917f4981fbaa2744f7424, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 135c697fe54387344bf5b53e78ef0786, type: 2}
+    - {fileID: 11400000, guid: 8efbb0df2e66eef4a8a964342ee60a48, type: 2}

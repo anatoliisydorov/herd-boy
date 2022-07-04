@@ -12,14 +12,12 @@ namespace Dev.AimableMechanics
         void Throw(Vector3 direction);
     }
 
-    public class ThrowAndSling: SmartStart, IAimable
+    public class ThrowAndSling: MonoBehaviour, IAimable
     {
         private Carrying _carrying;
 
-        public override void OnStart()
+        private void Start()
         {
-            base.OnStart();
-
             if (World.GetWorld().GetSingleComponent(out PlayerCharacter player))
             {
                 _carrying = player.Carrying;
@@ -38,9 +36,11 @@ namespace Dev.AimableMechanics
 
         public void OnAimingComplete(Vector3 aimingPoint)
         {
-            var throwing = _carrying.GetCurrentThrowing();
-            var direction = (aimingPoint - transform.position).normalized;
-            throwing.Throw(direction);
+            _carrying.GetCurrentThrowing((throwing) =>
+            {
+                var direction = (aimingPoint - transform.position).normalized;
+                throwing.Throw(direction);
+            });
         }
     }
 }

@@ -39,9 +39,8 @@ namespace Dev.Movement
         private NativeArray<MovementJobData> _movementData;
         private List<IMovable> _movables = new List<IMovable>();
 
-        public override void OnAwake()
+        private void Awake()
         {
-            base.OnAwake();
             forceUpdate = true;
         }
 

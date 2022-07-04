@@ -13,16 +13,13 @@ namespace Dev.Input
         private Transform _cameraTransform;
         private PlayerCharacter _player;
 
-        public override void OnAwake()
+        private void Awake()
         {
-            base.OnAwake();
-
             _inputSystem = SingletoneServer.Instance.Get<InputSystem>();
         }
 
-        public override void OnStart()
+        private void Start()
         {
-            base.OnStart();
             if (Camera.main != null)
                 _cameraTransform = Camera.main.transform;
 
@@ -30,16 +27,16 @@ namespace Dev.Input
                 _player = player;
         }
 
-        protected override void OnEnabled()
+        protected override void OnEnable()
         {
-            base.OnEnabled();
+            base.OnEnable();
 
             _inputSystem.OnMovementCall += HandleMovement;
         }
 
-        protected override void OnDisabled()
+        protected override void OnDisable()
         {
-            base.OnDisabled();
+            base.OnDisable();
 
             _inputSystem.OnMovementCall -= HandleMovement;
         }

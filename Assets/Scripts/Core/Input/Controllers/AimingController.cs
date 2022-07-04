@@ -49,19 +49,15 @@ namespace Dev.Input
             }
         }
 
-        public override void OnAwake()
+        private void Awake()
         {
-            base.OnAwake();
-
             _line = GetComponent<LineRenderer>();
 
             SetActiveTrajectory(false);
         }
 
-        public override void OnStart()
+        private void Start()
         {
-            base.OnStart();
-
             _inputSystem = SingletoneServer.Instance.Get<InputSystem>();
             _herd = SingletoneServer.Instance.Get<HerdBehaviour>();
 
@@ -79,9 +75,9 @@ namespace Dev.Input
             UpdateGamepadAiming();
         }
 
-        protected override void OnEnabled()
+        protected override void OnEnable()
         {
-            base.OnEnabled();
+            base.OnEnable();
 
             InputSystem.OnHerdTargetCall += HandleHerdTarget;
             InputSystem.OnSlingOrThrowCall += HandleSlingOrThrow;
@@ -89,9 +85,9 @@ namespace Dev.Input
             InputSystem.OnGamepadAimingCall += HandleGamepadAiming;
         }
 
-        protected override void OnDisabled()
+        protected override void OnDisable()
         {
-            base.OnDisabled();
+            base.OnDisable();
             
             InputSystem.OnHerdTargetCall -= HandleHerdTarget;
             InputSystem.OnSlingOrThrowCall -= HandleSlingOrThrow;

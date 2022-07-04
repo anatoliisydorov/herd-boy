@@ -16,7 +16,7 @@ namespace Dev.Movement
         public void Move(Vector3 movement);
     }
 
-    public class BasicMovement : SmartStart, IMovable
+    public class BasicMovement : MonoBehaviour, IMovable
     {
         [SerializeField] private float _moveSpeed = 20f;
         [SerializeField] private float _rotateSpeed = 20f;
