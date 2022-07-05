@@ -46,17 +46,18 @@ namespace Dev.Input
 
         private void HandleMovement(Vector2 inputMovement)
         {
-            Vector3 cameraForward = _cameraTransform.forward;
-            Vector3 cameraRight = _cameraTransform.right;
+            var cameraForward = _cameraTransform.forward;
+            var cameraRight = _cameraTransform.right;
 
             cameraForward.y = 0f;
             cameraRight.y = 0f;
             cameraForward.Normalize();
             cameraRight.Normalize();
 
-            Vector3 moveDirection = Vector3.ClampMagnitude(cameraForward * inputMovement.y + cameraRight * inputMovement.x, 1f);
+            var moveDirection = Vector3.ClampMagnitude(cameraForward * inputMovement.y + cameraRight * inputMovement.x, 1f);
             Debug.Log($"Move call: {moveDirection}");
             _player.BasicMovement.Move(moveDirection.normalized);
+            if (inputMovement.magnitude > .1f) _player.BasicMovement.Rotate(moveDirection.normalized);
         }
     }
 }
