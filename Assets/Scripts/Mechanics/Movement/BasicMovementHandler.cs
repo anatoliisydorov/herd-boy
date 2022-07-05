@@ -10,14 +10,25 @@ using UnityEngine.Jobs;
 
 namespace Dev.Movement
 {
+    public struct MovementJobData
+    {
+        public Vector3 Movement;
+        public Quaternion TargetRotation;
+        public float MoveSpeed;
+        public float RotateSpeed;
+    }
+
     public struct MovementJob: IJobParallelForTransform
     {
-        [ReadOnly] public NativeArray<Vector3> Movements;
+        [ReadOnly] public NativeArray<MovementJobData> Data;
         public float DeltaTime;
 
         public void Execute(int index, TransformAccess transform)
         {
-            transform.position = transform.position + (Movements[index] * DeltaTime);
+            var data = Data[index];
+            var newPosition = transform.position + data.Movement;
+            transform.position = Vector3.Lerp(transform.position, newPosition, data.MoveSpeed * DeltaTime);
+            transform.rotation = Quaternion.Lerp(transform.rotation, data.TargetRotation, data.RotateSpeed * DeltaTime);
         }
     }
 
@@ -25,7 +36,7 @@ namespace Dev.Movement
     {
         private JobHandle _moveHandle;
         private TransformAccessArray _transforms;
-        private NativeArray<Vector3> _movements;
+        private NativeArray<MovementJobData> _movementData;
         private List<IMovable> _movables = new List<IMovable>();
 
         public override void OnAwake()
@@ -41,10 +52,10 @@ namespace Dev.Movement
             if (_movables.Count == 0) return;
             
             Transform[] transforms = new Transform[_movables.Count];
-            _movements = new NativeArray<Vector3>(_movables.Count, Allocator.TempJob);
+            _movementData = new NativeArray<MovementJobData>(_movables.Count, Allocator.TempJob);
             for (int i = 0; i < _movables.Count; i++)
             {
-                _movements[i] = _movables[i].MoveStep;
+                _movementData[i] = _movables[i].MoveData;
                 
                 transforms[i] = _movables[i].Transform;
             }
@@ -54,7 +65,7 @@ namespace Dev.Movement
             float deltaTime = GameTime.DeltaTime;
             var moveJob = new MovementJob()
             {
-                Movements = _movements,
+                Data = _movementData,
                 DeltaTime = deltaTime
             };
 
@@ -69,7 +80,7 @@ namespace Dev.Movement
             _moveHandle.Complete();
 
             _transforms.Dispose();
-            _movements.Dispose();
+            _movementData.Dispose();
         }
 
         public void AddBasicMovement(IMovable movable)
