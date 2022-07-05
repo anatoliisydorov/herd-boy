@@ -562,6 +562,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31ef07e1053041b40a04b619c17659b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enableLateUpdate: 0
   _aimingSpeed: 1000
 --- !u!1 &903641514
 GameObject:
@@ -826,6 +827,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1044246268}
   - component: {fileID: 1044246269}
+  - component: {fileID: 1044246270}
   m_Layer: 0
   m_Name: HandsScripts
   m_TagString: Untagged
@@ -860,6 +862,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 681b7c9e233dbae4f84a50b0a628ce79, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1044246270
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1044246267}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ddf6581f9df9b7c48b20d336dfd9540b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _slingProjectile:
+    m_AssetGUID: 892e9a0533f57344ba9f17982cdd64a6
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
 --- !u!1 &1110401872
 GameObject:
   m_ObjectHideFlags: 0
@@ -1488,8 +1507,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 631069f71dbbfe74195de1559b94e0b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enableLateUpdate: 0
   health: 0
-  _sling: {fileID: 1044246269}
+  _throw: {fileID: 1044246269}
+  _carrying: {fileID: 1044246270}
 --- !u!114 &1648169816
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1746,6 +1767,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d0819a1ab4d68c4fbf4da52273e69c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enableLateUpdate: 0
 --- !u!1 &1961471514
 GameObject:
   m_ObjectHideFlags: 0

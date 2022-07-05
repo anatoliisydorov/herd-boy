@@ -21,14 +21,8 @@ namespace Dev.Movement
         [SerializeField] private float _moveSpeed = 20f;
         [SerializeField] private float _rotateSpeed = 20f;
 
-<<<<<<< Updated upstream
         public bool IsBlocked { get; set; }
-        public Vector3 MoveStep { get; protected set; }
-=======
-        private bool _isBlocked;
-
         public MovementJobData MoveData { get; protected set; }
->>>>>>> Stashed changes
         public Transform Transform{ get => transform; }
 
         public float MoveSpeed 
@@ -43,15 +37,13 @@ namespace Dev.Movement
             set => _rotateSpeed = value;
         }
         
-        protected override void OnEnabled()
+        private void OnEnable()
         {
-            base.OnEnabled();
             Dev.Services.SingletoneServer.Instance.Get<BasicMovementHandler>().AddBasicMovement(this);
         }
 
-        protected override void OnDisabled()
+        private void OnDisable()
         {
-            base.OnDisabled();
             Dev.Services.SingletoneServer.Instance.Get<BasicMovementHandler>().RemoveBasicMovement(this);
         }
 
@@ -63,13 +55,7 @@ namespace Dev.Movement
 
         public void Move(Vector2 input)
         {
-<<<<<<< Updated upstream
-            if (IsBlocked) return;
-            
-            Vector3 movement = new Vector3(input.x, 0f, input.y);
-=======
             var movement = new Vector3(input.x, 0f, input.y);
->>>>>>> Stashed changes
             Move(movement);
         }
 
@@ -86,21 +72,11 @@ namespace Dev.Movement
 
         public void Move(Vector3 movement)
         {
-<<<<<<< Updated upstream
-            if (IsBlocked) return;
-            
-            // var deltaTime = GameTime.DeltaTime;
-            MoveStep = _speed * movement;
-            // MoveStep = _speed * deltaTime * movement;
-            
-            // Debug.Log($"Move: deltatime: {deltaTime} == {MoveStep}");
-=======
             var moveData = MoveData;
             moveData.Movement = movement;
             moveData.MoveSpeed = _moveSpeed;
 
             MoveData = moveData;
->>>>>>> Stashed changes
         }
     }
 }
