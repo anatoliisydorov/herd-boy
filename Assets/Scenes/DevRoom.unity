@@ -202,7 +202,7 @@ GameObject:
   - component: {fileID: 322224929}
   - component: {fileID: 322224928}
   - component: {fileID: 322224927}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -674,7 +674,7 @@ GameObject:
   - component: {fileID: 965829694}
   - component: {fileID: 965829693}
   - component: {fileID: 965829692}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Geometry
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -828,7 +828,7 @@ GameObject:
   - component: {fileID: 1044246268}
   - component: {fileID: 1044246269}
   - component: {fileID: 1044246270}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: HandsScripts
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1457,7 +1457,7 @@ GameObject:
   - component: {fileID: 1648169814}
   - component: {fileID: 1648169816}
   - component: {fileID: 1648169817}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
