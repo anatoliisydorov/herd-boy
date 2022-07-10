@@ -14,7 +14,7 @@ namespace Dev.AimableMechanics
 
     public class ThrowAndSling: MonoBehaviour, IAimable
     {
-        private Carrying _carrying;
+        private Carring _carrying;
 
         private void Start()
         {
