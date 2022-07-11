@@ -32,6 +32,7 @@ namespace Dev.Input
             base.OnEnable();
 
             _inputSystem.OnMovementCall += HandleMovement;
+            _inputSystem.OnInteractCall += HandleInteract;
         }
 
         protected override void OnDisable()
@@ -39,6 +40,7 @@ namespace Dev.Input
             base.OnDisable();
 
             _inputSystem.OnMovementCall -= HandleMovement;
+            _inputSystem.OnInteractCall -= HandleInteract;
         }
 
         private void HandleMovement(Vector2 inputMovement)
@@ -55,6 +57,11 @@ namespace Dev.Input
             Debug.Log($"Move call: {moveDirection}");
             _player.BasicMovement.Move(moveDirection.normalized);
             if (inputMovement.magnitude > .1f) _player.BasicMovement.Rotate(moveDirection.normalized);
+        }
+
+        private void HandleInteract()
+        {
+            _player.Carring.SwitchPickAndPut();
         }
     }
 }

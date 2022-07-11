@@ -10,12 +10,12 @@ namespace Dev.Character
     public class PlayerCharacter: BaseCharacter
     {
         [SerializeField] private ThrowAndSling _throw;
-        [SerializeField] private Carring _carrying;
+        [SerializeField] private Carring _carring;
 
         private BasicMovement _basicMovement;
 
         public ThrowAndSling Throw { get => _throw; }
-        public Carring Carrying { get => _carrying; }
+        public Carring Carring { get => _carring; }
         public BasicMovement BasicMovement { get => _basicMovement; }
 
         private void Awake()

@@ -20,7 +20,7 @@ namespace Dev.AimableMechanics
         {
             if (World.GetWorld().GetSingleComponent(out PlayerCharacter player))
             {
-                _carrying = player.Carrying;
+                _carrying = player.Carring;
             }
         }
 

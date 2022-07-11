@@ -11,9 +11,13 @@ namespace Dev.Hands
     {
         [SerializeField] private AssetReference _slingProjectile;
         [SerializeField] private TriggerActions _triggerActions;
+        [SerializeField] private Transform _holdingTransform;
 
         private ICarryable _currentTargetCarryable;
+        private ICarryable _holdingCarryable;
         private ICarryable[] _carryablesInsideTrigger = new ICarryable[5];
+
+        public bool IsCarring => _holdingCarryable != null;
 
         private void Awake()
         {
@@ -29,14 +33,42 @@ namespace Dev.Hands
 
         public void GetCurrentThrowing(Action<IThrowable> onGettingCompleted)
         {
-            if (_currentTargetCarryable != null)
+            if (_holdingCarryable != null)
             {
-                onGettingCompleted.Invoke(_currentTargetCarryable.GetThrowable());
+                onGettingCompleted.Invoke(_holdingCarryable.GetThrowable());
                 return;
             }
 
             Action<ThrowingComponent> onComplete = (result) => onGettingCompleted.Invoke(result);
             GamePool.GetPoolable(_slingProjectile, transform.position, transform.rotation, onComplete);
+        }
+
+        public void SwitchPickAndPut()
+        {
+            if (_holdingCarryable == null)
+                PickUpCarryable();
+            else
+                PutDownCarryable();
+        }
+
+        private void PickUpCarryable()
+        {
+            if (_currentTargetCarryable == null) return;
+
+            _holdingCarryable = _currentTargetCarryable;
+            _holdingCarryable.PickUp();
+            _holdingCarryable.GetTransform().SetParent(_holdingTransform);
+            _holdingCarryable.GetTransform().position = _holdingTransform.position;
+            _holdingCarryable.GetTransform().rotation = _holdingTransform.rotation;
+        }
+
+        private void PutDownCarryable()
+        {
+            if (_holdingCarryable == null) return;
+
+            _holdingCarryable.PutDown();
+            _holdingCarryable.GetTransform().SetParent(null);
+            _holdingCarryable = null;
         }
 
         private void OnTriggerEnterAction(Collider collider)
@@ -99,7 +131,7 @@ namespace Dev.Hands
             {
                 if (_carryablesInsideTrigger[i] != null)
                 {
-                    float distance = Vector3.Distance(transform.position, _carryablesInsideTrigger[i].GetPosition());
+                    float distance = Vector3.Distance(transform.position, _carryablesInsideTrigger[i].GetTransform().position);
                     if (distance < clossestCarryableDistance)
                     {
                         clossestCarryableDistance = distance;

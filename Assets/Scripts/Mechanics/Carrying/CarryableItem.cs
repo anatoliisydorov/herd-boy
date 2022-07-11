@@ -6,7 +6,7 @@ namespace Dev.Hands
 {
     public interface ICarryable
     {
-        Vector3 GetPosition();
+        Transform GetTransform();
         void PickUp();
         void PutDown();
         IThrowable GetThrowable();
@@ -29,9 +29,9 @@ namespace Dev.Hands
             _visibilityActions.OnBecomeInvisibleCall += () => _rigidbody.isKinematic = true;
         }
 
-        public Vector3 GetPosition()
+        public Transform GetTransform()
         {
-            return transform.position;
+            return transform;
         }
 
         public IThrowable GetThrowable()
