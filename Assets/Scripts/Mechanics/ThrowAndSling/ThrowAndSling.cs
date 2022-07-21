@@ -3,13 +3,14 @@ using Dev.Core;
 using Dev.Hands;
 using Dev.Input;
 using Dev.Services;
+using System;
 using UnityEngine;
 
 namespace Dev.AimableMechanics
 {
     public interface IThrowable
     {
-        void Throw(Vector3 direction);
+        void Throw(Vector3 targetPoint);
     }
 
     public class ThrowAndSling: MonoBehaviour, IAimable
@@ -38,8 +39,8 @@ namespace Dev.AimableMechanics
         {
             _carrying.GetCurrentThrowing((throwing) =>
             {
-                var direction = (aimingPoint - transform.position).normalized;
-                throwing.Throw(direction);
+                _carrying.CleanHoldingCarryable();
+                throwing.Throw(aimingPoint);
             });
         }
     }

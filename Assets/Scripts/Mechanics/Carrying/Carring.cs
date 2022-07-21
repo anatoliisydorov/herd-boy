@@ -1,7 +1,10 @@
 using Dev.Actions;
 using Dev.AimableMechanics;
+using Dev.Character;
 using Dev.ObjectsManagement;
+using Dev.Services;
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -12,6 +15,7 @@ namespace Dev.Hands
         [SerializeField] private AssetReference _slingProjectile;
         [SerializeField] private TriggerActions _triggerActions;
         [SerializeField] private Transform _holdingTransform;
+        [SerializeField] private BaseCharacter _character;
 
         private ICarryable _currentTargetCarryable;
         private ICarryable _holdingCarryable;
@@ -39,8 +43,13 @@ namespace Dev.Hands
                 return;
             }
 
-            Action<ThrowingComponent> onComplete = (result) => onGettingCompleted.Invoke(result);
+            Action<ThrowingStraightComponent> onComplete = (result) => onGettingCompleted.Invoke(result);
             GamePool.GetPoolable(_slingProjectile, transform.position, transform.rotation, onComplete);
+        }
+
+        public void CleanHoldingCarryable()
+        {
+            PutDownCarryable();
         }
 
         public void SwitchPickAndPut()
@@ -56,6 +65,8 @@ namespace Dev.Hands
             if (_currentTargetCarryable == null) return;
 
             _holdingCarryable = _currentTargetCarryable;
+            _currentTargetCarryable = null;
+
             _holdingCarryable.PickUp();
             _holdingCarryable.GetTransform().SetParent(_holdingTransform);
             _holdingCarryable.GetTransform().position = _holdingTransform.position;
@@ -66,9 +77,13 @@ namespace Dev.Hands
         {
             if (_holdingCarryable == null) return;
 
+            var collider = _holdingCarryable.GetCollider();
             _holdingCarryable.PutDown();
             _holdingCarryable.GetTransform().SetParent(null);
             _holdingCarryable = null;
+            _currentTargetCarryable = null;
+
+            TryRefreshCurrentCarryable();
         }
 
         private void OnTriggerEnterAction(Collider collider)
@@ -84,6 +99,9 @@ namespace Dev.Hands
         {
             if (!collider.TryGetComponent(out ICarryable carryable)) return;
             if (!ContainCarryable(carryable)) return;
+
+            if (carryable == _currentTargetCarryable)
+                _currentTargetCarryable = null;
 
             if (TryRemoveCarryable(carryable))
                 TryRefreshCurrentCarryable();

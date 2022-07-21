@@ -12,6 +12,9 @@ namespace Dev.Character
     public class BaseCharacter : SmartUpdate, ICharacterable
     {
         [SerializeField] protected int health;
+        [SerializeField] protected Collider _collider;
+
+        public Collider Collider { get => _collider; }
 
         public virtual bool TakeDamage()
         {
