@@ -33,6 +33,11 @@ namespace Dev.AimableMechanics
             OnThrow(targetPoint);
         }
 
+        public virtual float GetMass()
+        {
+            return 1f;
+        }
+
         protected virtual void Stop()
         {
             if (_stopParticlesAsset != null)

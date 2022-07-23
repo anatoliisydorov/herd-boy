@@ -19,6 +19,7 @@ namespace Dev.Input
         Vector3 GetInitAimingPoint();
         Vector3 GetAimablePosition();
         void OnAimingComplete(Vector3 aimingPoint);
+        float GetAimingMulltiplier();
     }
 
     [RequireComponent(typeof(LineRenderer))]
@@ -164,6 +165,8 @@ namespace Dev.Input
 
         private void SetAimingPosition(Vector2 aimingScreenPosition)
         {
+            aimingScreenPosition = Extensions.ScreenExtansions.ClampByDistanceMultiplier(_mainCamera.WorldToScreenPoint(_currentAimable.GetAimablePosition()), aimingScreenPosition, _currentAimable.GetAimingMulltiplier());
+
             if (Vector2.Distance(_lastAimScreenPosition, aimingScreenPosition) < .1f) return;
             _lastAimScreenPosition = aimingScreenPosition;
 

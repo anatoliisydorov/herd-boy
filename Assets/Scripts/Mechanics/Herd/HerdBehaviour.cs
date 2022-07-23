@@ -73,5 +73,10 @@ namespace Dev.Herd
         {
             return _targetTransform.position;
         }
+
+        public float GetAimingMulltiplier()
+        {
+            return 1f;
+        }
     }
 }

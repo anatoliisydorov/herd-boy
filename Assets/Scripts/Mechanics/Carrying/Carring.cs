@@ -35,22 +35,23 @@ namespace Dev.Hands
             _triggerActions.OnTriggerExitCall -= OnTriggerExitAction;
         }
 
-        public void GetCurrentThrowing(Action<IThrowable> onGettingCompleted)
+        public void ThrowCarryable(Vector3 targetPoint)
         {
             if (_holdingCarryable != null)
             {
-                onGettingCompleted.Invoke(_holdingCarryable.GetThrowable());
+                _holdingCarryable.GetThrowable().Throw(targetPoint);
+                PutDownCarryable();
                 return;
             }
 
-            Action<ThrowingStraightComponent> onComplete = (result) => onGettingCompleted.Invoke(result);
+            Action<ThrowingStraightComponent> onComplete = (result) => result.Throw(targetPoint);
             GamePool.GetPoolable(_slingProjectile, transform.position, transform.rotation, onComplete);
         }
 
-        public void CleanHoldingCarryable()
-        {
-            PutDownCarryable();
-        }
+        //public void CleanHoldingCarryable()
+        //{
+        //    PutDownCarryable();
+        //}
 
         public void SwitchPickAndPut()
         {
@@ -58,6 +59,13 @@ namespace Dev.Hands
                 PickUpCarryable();
             else
                 PutDownCarryable();
+        }
+
+        public float GetCarryableMass()
+        {
+            if (_holdingCarryable == null) return 1f;
+
+            return _holdingCarryable.GetThrowable().GetMass();
         }
 
         private void PickUpCarryable()

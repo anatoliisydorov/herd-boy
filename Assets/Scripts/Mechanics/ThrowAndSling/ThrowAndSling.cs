@@ -10,12 +10,15 @@ namespace Dev.AimableMechanics
 {
     public interface IThrowable
     {
+        float GetMass();
         void Throw(Vector3 targetPoint);
     }
 
     public class ThrowAndSling: MonoBehaviour, IAimable
     {
         private Carring _carrying;
+
+        private const float MAX_THROWING_MASS = 1f;
 
         private void Start()
         {
@@ -37,11 +40,12 @@ namespace Dev.AimableMechanics
 
         public void OnAimingComplete(Vector3 aimingPoint)
         {
-            _carrying.GetCurrentThrowing((throwing) =>
-            {
-                _carrying.CleanHoldingCarryable();
-                throwing.Throw(aimingPoint);
-            });
+            _carrying.ThrowCarryable(aimingPoint);
+        }
+
+        public float GetAimingMulltiplier()
+        {
+            return MAX_THROWING_MASS / _carrying.GetCarryableMass();
         }
     }
 }

@@ -4,7 +4,7 @@ namespace Dev.AimableMechanics
 {
     [RequireComponent(typeof(Rigidbody))]
     [RequireComponent(typeof(Collider))]
-    public class ThrowingWithPhysicsComponent: ThrowingComponent, IThrowable
+    public class ThrowingWithPhysicsComponent: ThrowingComponent
     {
 
         private Rigidbody _rigidbody;
@@ -14,6 +14,11 @@ namespace Dev.AimableMechanics
         private void Awake()
         {
             _rigidbody = GetComponent<Rigidbody>();
+        }
+
+        public override float GetMass()
+        {
+            return _rigidbody.mass;
         }
 
         protected override void OnThrow(Vector3 targetPoint)
