@@ -6,10 +6,10 @@ namespace Dev.AimableMechanics
     [RequireComponent(typeof(Collider))]
     public class ThrowingWithPhysicsComponent: ThrowingComponent
     {
+        private static float MAX_FORCE = 10f;
+        private static float THROWING_RANDOM_OFFSET = .75f;
 
         private Rigidbody _rigidbody;
-
-        private float _launchAngle = 45f;
 
         private void Awake()
         {
@@ -21,25 +21,36 @@ namespace Dev.AimableMechanics
             return _rigidbody.mass;
         }
 
-        protected override void OnThrow(Vector3 targetPoint)
+        public override Vector3 CalculateVelocity(Vector3 aimingPoint)
         {
             var projectileXZPosition = new Vector3(transform.position.x, 0f, transform.position.z);
-            var targetXZPosition = new Vector3(targetPoint.x, 0f, targetPoint.z);
-
-            transform.LookAt(targetXZPosition);
+            var targetXZPosition = new Vector3(aimingPoint.x, 0f, aimingPoint.z);
 
             var distance = Vector3.Distance(projectileXZPosition, targetXZPosition);
             var gravity = Physics.gravity.y;
-            var tanAlpha = Mathf.Tan(_launchAngle * Mathf.Deg2Rad);
-            var height = targetPoint.y - transform.position.y;
+            var height = aimingPoint.y - transform.position.y;
 
-            var Vz = Mathf.Sqrt(gravity * distance * distance / (2f * (height - distance * tanAlpha)));
+            var angle = Vector3.Angle(aimingPoint - transform.position, targetXZPosition - projectileXZPosition);
+            angle += 35f;
+            angle = angle >= 90f ? 89f : angle;
+            var tanAlpha = Mathf.Tan(angle * Mathf.Deg2Rad);
+            var multiplier = height - distance * tanAlpha;
+
+            float Vz = Mathf.Sqrt(gravity * distance * distance / (2f * multiplier));
             var Vy = tanAlpha * Vz;
 
-            var localVelocity = new Vector3(0f, Vy, Vz);
-            var globalVelocity = transform.TransformDirection(localVelocity);
+            var velocity = new Vector3(0f, Vy, Vz);
+            var velocityRotation = Quaternion.LookRotation(targetXZPosition - projectileXZPosition, Vector3.up);
+            var finalVelocity = velocityRotation * velocity;
+            finalVelocity = Vector3.ClampMagnitude(finalVelocity, MAX_FORCE);
 
-            _rigidbody.velocity = globalVelocity;
+            return finalVelocity;
+        }
+
+        protected override void OnThrow(Vector3 targetPoint)
+        {
+            targetPoint += new Vector3(Random.Range(0f, THROWING_RANDOM_OFFSET), 0f, Random.Range(0f, THROWING_RANDOM_OFFSET));
+            _rigidbody.velocity = CalculateVelocity(targetPoint);
         }
     }
 }

@@ -68,6 +68,17 @@ namespace Dev.Hands
             return _holdingCarryable.GetThrowable().GetMass();
         }
 
+        public Vector3[] GetThrowableTrajectory(Vector3 aimingPoint)
+        {
+            if (_holdingCarryable != null)
+            {
+                var velocity = _holdingCarryable.GetThrowable().CalculateVelocity(aimingPoint);
+                return Utilities.TrajectoryBuilder.CalculateByGravityTrajectory(_holdingTransform.position, velocity);
+            }
+
+            return Utilities.TrajectoryBuilder.CalculateStraightTrajectory(_holdingTransform.position, aimingPoint);
+        }
+
         private void PickUpCarryable()
         {
             if (_currentTargetCarryable == null) return;

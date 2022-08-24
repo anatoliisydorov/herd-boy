@@ -12,6 +12,7 @@ namespace Dev.AimableMechanics
     {
         float GetMass();
         void Throw(Vector3 targetPoint);
+        Vector3 CalculateVelocity(Vector3 aimingPoint);
     }
 
     public class ThrowAndSling: MonoBehaviour, IAimable
@@ -46,6 +47,11 @@ namespace Dev.AimableMechanics
         public float GetAimingMulltiplier()
         {
             return MAX_THROWING_MASS / _carrying.GetCarryableMass();
+        }
+
+        public Vector3[] GetTrajectory(Vector3 aimingPoint)
+        {
+            return _carrying.GetThrowableTrajectory(aimingPoint);
         }
     }
 }

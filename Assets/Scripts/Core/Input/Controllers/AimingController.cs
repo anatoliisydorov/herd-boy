@@ -14,12 +14,15 @@ namespace Dev.Input
         SLING_OR_THROW = 2
     }
 
+    //public interface ITrajectoryCalculator
+
     public interface IAimable
     {
         Vector3 GetInitAimingPoint();
         Vector3 GetAimablePosition();
         void OnAimingComplete(Vector3 aimingPoint);
         float GetAimingMulltiplier();
+        Vector3[] GetTrajectory(Vector3 aimingPoint);
     }
 
     [RequireComponent(typeof(LineRenderer))]
@@ -184,13 +187,11 @@ namespace Dev.Input
             if (Physics.Raycast(ray, out RaycastHit hit, 100f))
             {
                 result = hit.point;
+                Debug.Log(hit.collider.name);
                 
                 if (_state == AimingState.HERD_TARGET)
                 {
-                    Vector3 startNavCheckPosition = hit.point + Vector3.up;
-                    Vector3 endNavCheckPosition = hit.point - Vector3.up;
-
-                    if (!NavMesh.Raycast(startNavCheckPosition, endNavCheckPosition, out NavMeshHit navHit, NavMesh.AllAreas))
+                    if (NavMesh.SamplePosition(hit.point, out var navHit, 1f, NavMesh.AllAreas))
                     {
                         result = navHit.position;
                         return true;
@@ -212,12 +213,14 @@ namespace Dev.Input
 
         private void RenderTrajectory()
         {
-            Vector3[] points = new Vector3[]
-            {
-                _currentAimable.GetAimablePosition(), _lastAimPoint
-            };
-
+            var points = _currentAimable.GetTrajectory(_lastAimPoint);
+            _line.positionCount = points.Length;
             _line.SetPositions(points);
+
+            //for (int i = 1; i < points.Length; i++)
+            //    Debug.DrawLine(points[i], points[i - 1], Color.red, 10f);
+
+            //Debug.Break();
             
             float width =  _line.startWidth;
             _line.material.mainTextureScale = new Vector2(1f / width, 1.0f);

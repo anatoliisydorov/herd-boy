@@ -78,5 +78,10 @@ namespace Dev.Herd
         {
             return 1f;
         }
+
+        public Vector3[] GetTrajectory(Vector3 aimingPoint)
+        {
+            return Utilities.TrajectoryBuilder.CalculateStraightTrajectory(GetAimablePosition(), aimingPoint);
+        }
     }
 }

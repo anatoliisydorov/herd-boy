@@ -38,6 +38,11 @@ namespace Dev.AimableMechanics
             return 1f;
         }
 
+        public virtual Vector3 CalculateVelocity(Vector3 aimingPoint)
+        {
+            return aimingPoint - transform.position;
+        }
+
         protected virtual void Stop()
         {
             if (_stopParticlesAsset != null)
