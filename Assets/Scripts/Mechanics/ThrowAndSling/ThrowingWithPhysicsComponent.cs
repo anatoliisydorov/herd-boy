@@ -7,7 +7,7 @@ namespace Dev.AimableMechanics
     public class ThrowingWithPhysicsComponent: ThrowingComponent
     {
         private static float MAX_FORCE = 10f;
-        private static float THROWING_RANDOM_OFFSET = .75f;
+        private static float THROWING_RANDOM_OFFSET = .5f;
 
         private Rigidbody _rigidbody;
 
@@ -31,6 +31,7 @@ namespace Dev.AimableMechanics
             var height = aimingPoint.y - transform.position.y;
 
             var angle = Vector3.Angle(aimingPoint - transform.position, targetXZPosition - projectileXZPosition);
+            if (height < 0) angle *= -1;
             angle += 35f;
             angle = angle >= 90f ? 89f : angle;
             var tanAlpha = Mathf.Tan(angle * Mathf.Deg2Rad);
@@ -44,12 +45,14 @@ namespace Dev.AimableMechanics
             var finalVelocity = velocityRotation * velocity;
             finalVelocity = Vector3.ClampMagnitude(finalVelocity, MAX_FORCE);
 
+            Debug.Log(finalVelocity);
+
             return finalVelocity;
         }
 
         protected override void OnThrow(Vector3 targetPoint)
         {
-            targetPoint += new Vector3(Random.Range(0f, THROWING_RANDOM_OFFSET), 0f, Random.Range(0f, THROWING_RANDOM_OFFSET));
+            targetPoint += new Vector3(Random.Range(-THROWING_RANDOM_OFFSET, THROWING_RANDOM_OFFSET), 0f, Random.Range(-THROWING_RANDOM_OFFSET, THROWING_RANDOM_OFFSET));
             _rigidbody.velocity = CalculateVelocity(targetPoint);
         }
     }

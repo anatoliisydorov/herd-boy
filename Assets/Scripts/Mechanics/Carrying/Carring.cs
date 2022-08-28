@@ -48,11 +48,6 @@ namespace Dev.Hands
             GamePool.GetPoolable(_slingProjectile, transform.position, transform.rotation, onComplete);
         }
 
-        //public void CleanHoldingCarryable()
-        //{
-        //    PutDownCarryable();
-        //}
-
         public void SwitchPickAndPut()
         {
             if (_holdingCarryable == null)
@@ -73,7 +68,7 @@ namespace Dev.Hands
             if (_holdingCarryable != null)
             {
                 var velocity = _holdingCarryable.GetThrowable().CalculateVelocity(aimingPoint);
-                return Utilities.TrajectoryBuilder.CalculateByGravityTrajectory(_holdingTransform.position, velocity);
+                return Utilities.TrajectoryBuilder.CalculateByGravityTrajectory(_holdingTransform.position, velocity, aimingPoint);
             }
 
             return Utilities.TrajectoryBuilder.CalculateStraightTrajectory(_holdingTransform.position, aimingPoint);

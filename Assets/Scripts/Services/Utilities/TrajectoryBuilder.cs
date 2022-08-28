@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace Dev.Utilities
 {
@@ -13,10 +14,16 @@ namespace Dev.Utilities
             return points;
         }
 
-        public static Vector3[] CalculateByGravityTrajectory(Vector3 startPoint, Vector3 velocity, int maxPointsCount = 10, bool checkCollision = true)
+        public static Vector3[] CalculateByGravityTrajectory(Vector3 startPoint, Vector3 velocity, Vector3 targetPoint, int maxPointsCount = 10, bool checkCollision = true)
         {
             var gravityY = Physics.gravity.y;
             var duration = (2 * velocity.y) / gravityY;
+            var height = startPoint.y - targetPoint.y;
+            if (height > 0)
+            {
+                var calc = velocity.y * velocity.y + 2 * gravityY * -height;
+                duration = (velocity.y + Mathf.Sqrt(calc)) / gravityY;
+            }
             var stepTime = duration / maxPointsCount;
 
             var resultPoints = new Vector3[maxPointsCount + 1];
