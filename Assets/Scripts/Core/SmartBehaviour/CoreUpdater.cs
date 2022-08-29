@@ -6,49 +6,15 @@ namespace Dev.Core
 {
     public class CoreUpdater: MonoBehaviour
     {
-        private Stopwatch _generalStopWatch = new Stopwatch();
-        private float _awakeTimeBudget = 5f;
-        private float _startTimeBudget = 5f;
-
-        private List<ISmartAwakable> _awakableQueue = new List<ISmartAwakable>();
-        private List<ISmartStartable> _startableQueue = new List<ISmartStartable>();
-        
+        private Stopwatch _generalStopWatch = new Stopwatch();        
 
         private float _updateTimeBudget = 10f;
         private int _lastUpdatedIndex = 0;
 
         private List<ISmartUpdatable> _updatableForceQueue = new List<ISmartUpdatable>();
         private List<ISmartUpdatable> _updatableQueue = new List<ISmartUpdatable>();
+        private List<ISmartLateUpdatable> _lateUpdatableQueue = new List<ISmartLateUpdatable>();
         private List<ISmartFixedUpdatable> _fixedUpdatableQueue = new List<ISmartFixedUpdatable>();
-
-
-        public bool AddAwake(ISmartAwakable awakable)
-        {
-            if (_awakableQueue.Contains(awakable)) return false;
-
-            _awakableQueue.Add(awakable);
-            return true;
-        }
-
-        public void RemoveAwake(ISmartAwakable awakable)
-        {
-            if (_awakableQueue.Contains(awakable))
-                _awakableQueue.Remove(awakable);
-        }
-        
-        public bool AddStart(ISmartStartable startable)
-        {
-            if (_startableQueue.Contains(startable)) return false;
-
-            _startableQueue.Add(startable);
-            return true;
-        }
-
-        public void RemoveStart(ISmartStartable startable)
-        {
-            if (_startableQueue.Contains(startable))
-                _startableQueue.Remove(startable);
-        }
 
         public bool AddForceUpdate(ISmartUpdatable updatable)
         {
@@ -93,6 +59,20 @@ namespace Dev.Core
         }
 
 
+        public bool AddLateUpdate(ISmartLateUpdatable updatable)
+        {
+            if (_lateUpdatableQueue.Contains(updatable)) return false;
+
+            _lateUpdatableQueue.Add(updatable);
+            return true;
+        }
+
+        public void RemoveLateUpdate(ISmartLateUpdatable updatable)
+        {
+            if (_lateUpdatableQueue.Contains(updatable))
+                _lateUpdatableQueue.Remove(updatable);
+        }
+
         private void FixedUpdate()
         {
             for (int i = 0; i < _fixedUpdatableQueue.Count; i++)
@@ -106,8 +86,11 @@ namespace Dev.Core
 
             CallForceUpdates();
             CallUpdates();
-            CallStarts();
-            CallAwakes();
+        }
+
+        private void LateUpdate()
+        {
+            CallLateUpdates();
         }
 
         private void CallForceUpdates()
@@ -136,49 +119,21 @@ namespace Dev.Core
             }
         }
 
-        private void CallStarts()
+        private void CallLateUpdates()
         {
-            if (_awakableQueue.Count > 0) return;
-            
+            if (_lateUpdatableQueue.Count == 0) return;
             _generalStopWatch.Reset();
 
-            for (int i = 0; i < _startableQueue.Count; i++)
+            int maxUpdatesCount = 0;
+            while (_generalStopWatch.ElapsedMilliseconds < _updateTimeBudget)
             {
-                if (_startableQueue[i].IsStarted)
-                {
-                    _startableQueue.Remove(_startableQueue[i]);
-                    i--;
-                }
-                else
-                {
-                    _startableQueue[i].OnStart();
-                    i--;
-                }
+                _lateUpdatableQueue[_lastUpdatedIndex].OnLateUpdate();
+                _lastUpdatedIndex++;
+                maxUpdatesCount++;
 
-                if (_generalStopWatch.ElapsedMilliseconds >= _startTimeBudget) break;
-            }
-        }
+                if (_lastUpdatedIndex >= _lateUpdatableQueue.Count) _lastUpdatedIndex = 0;
 
-        private void CallAwakes()
-        {
-            _generalStopWatch.Reset();
-
-            for (int i = 0; i < _awakableQueue.Count; i++)
-            {
-                if (_awakableQueue[i].IsAwaked)
-                {
-                    _awakableQueue.RemoveAt(i);
-                    i--;
-                }
-                else
-                {
-                    _awakableQueue[i].OnAwake();
-                    _awakableQueue[i].Enable();
-                    RemoveAwake(_awakableQueue[i]);
-                    i--;
-                }
-
-                if (_generalStopWatch.ElapsedMilliseconds >= _awakeTimeBudget) break;
+                if (maxUpdatesCount >= _lateUpdatableQueue.Count) break;
             }
         }
     }

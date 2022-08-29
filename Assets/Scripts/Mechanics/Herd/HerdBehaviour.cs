@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Dev.Herd
 {
-    public class HerdBehaviour: SmartStart, IAimable
+    public class HerdBehaviour: MonoBehaviour, IAimable
     {
         [SerializeField] private SheepBehaviour[] _sheeps = new SheepBehaviour[0];
 
@@ -14,15 +14,13 @@ namespace Dev.Herd
 
         [SerializeField] private Transform _targetTransform;
 
-        public override void OnAwake()
+        private void Awake()
         {
-            base.OnAwake();
             Services.SingletoneServer.Instance.Set(this);
         }
 
-        public override void OnStart()
+        private void Start()
         {
-            base.OnStart();
             InitializeSheeps();
         }
 
@@ -74,6 +72,16 @@ namespace Dev.Herd
         public Vector3 GetSheepsTargetPoint()
         {
             return _targetTransform.position;
+        }
+
+        public float GetAimingMulltiplier()
+        {
+            return 1f;
+        }
+
+        public Vector3[] GetTrajectory(Vector3 aimingPoint)
+        {
+            return Utilities.TrajectoryBuilder.CalculateStraightTrajectory(GetAimablePosition(), aimingPoint);
         }
     }
 }

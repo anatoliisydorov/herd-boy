@@ -1,11 +1,9 @@
 using System.Collections.Generic;
 using Dev.Core;
 using Dev.Time;
-using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
-using UnityEngine.AI;
 using UnityEngine.Jobs;
 
 namespace Dev.Movement
@@ -39,9 +37,8 @@ namespace Dev.Movement
         private NativeArray<MovementJobData> _movementData;
         private List<IMovable> _movables = new List<IMovable>();
 
-        public override void OnAwake()
+        private void Awake()
         {
-            base.OnAwake();
             forceUpdate = true;
         }
 

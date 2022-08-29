@@ -1,6 +1,8 @@
+using Dev.Actions;
 using Dev.AimableMechanics;
 using Dev.Character;
 using Dev.Herd;
+using Dev.Movement;
 using Dev.Services;
 using UnityEngine;
 using UnityEngine.AI;
@@ -19,6 +21,8 @@ namespace Dev.Input
         Vector3 GetInitAimingPoint();
         Vector3 GetAimablePosition();
         void OnAimingComplete(Vector3 aimingPoint);
+        float GetAimingMulltiplier();
+        Vector3[] GetTrajectory(Vector3 aimingPoint);
     }
 
     [RequireComponent(typeof(LineRenderer))]
@@ -36,7 +40,9 @@ namespace Dev.Input
 
         private IAimable _currentAimable;
         private HerdBehaviour _herd;
-        private Sling _sling;
+        private ThrowAndSling _throw;
+        private MovementActions _playerOnMoveActions;
+        private IMovable _playerMovable;
 
         private LineRenderer _line;
 
@@ -49,25 +55,26 @@ namespace Dev.Input
             }
         }
 
-        public override void OnAwake()
+        private void Awake()
         {
-            base.OnAwake();
-
             _line = GetComponent<LineRenderer>();
 
             SetActiveTrajectory(false);
         }
 
-        public override void OnStart()
+        private void Start()
         {
-            base.OnStart();
-
             _inputSystem = SingletoneServer.Instance.Get<InputSystem>();
             _herd = SingletoneServer.Instance.Get<HerdBehaviour>();
 
             if (World.GetWorld().GetSingleComponent(out PlayerCharacter player))
             {
-                _sling = player.Sling;
+                _throw = player.Throw;
+                _playerOnMoveActions = player.OnMoveActions;
+                _playerMovable = player.BasicMovement;
+
+                _playerOnMoveActions.OnMovementCall += UpdateTrajectoryOnMovement;
+                _playerOnMoveActions.OnRotateCall += UpdateTrajectoryOnRotate;
             }
 
             _mainCamera = Camera.main;
@@ -79,9 +86,15 @@ namespace Dev.Input
             UpdateGamepadAiming();
         }
 
-        protected override void OnEnabled()
+        protected override void OnEnable()
         {
-            base.OnEnabled();
+            base.OnEnable();
+
+            if (_playerOnMoveActions != null)
+            {
+                _playerOnMoveActions.OnMovementCall += UpdateTrajectoryOnMovement;
+                _playerOnMoveActions.OnRotateCall += UpdateTrajectoryOnRotate;
+            }
 
             InputSystem.OnHerdTargetCall += HandleHerdTarget;
             InputSystem.OnSlingOrThrowCall += HandleSlingOrThrow;
@@ -89,14 +102,31 @@ namespace Dev.Input
             InputSystem.OnGamepadAimingCall += HandleGamepadAiming;
         }
 
-        protected override void OnDisabled()
+        protected override void OnDisable()
         {
-            base.OnDisabled();
-            
+            base.OnDisable();
+
+            _playerOnMoveActions.OnMovementCall -= UpdateTrajectoryOnMovement;
+            _playerOnMoveActions.OnRotateCall -= UpdateTrajectoryOnRotate;
+
             InputSystem.OnHerdTargetCall -= HandleHerdTarget;
             InputSystem.OnSlingOrThrowCall -= HandleSlingOrThrow;
             InputSystem.OnMouseAimingCall -= HandleMouseAiming;
             InputSystem.OnGamepadAimingCall -= HandleGamepadAiming;
+        }
+
+        private void UpdateTrajectoryOnMovement(Vector3 movement)
+        {
+            if (_state == AimingState.NONE) return;
+
+            CheckRaycastAndRenderTrajectory(_lastAimScreenPosition);
+        }
+
+        private void UpdateTrajectoryOnRotate(Quaternion newRotation)
+        {
+            if (_state == AimingState.NONE) return;
+
+            CheckRaycastAndRenderTrajectory(_lastAimScreenPosition);
         }
 
         private void HandleHerdTarget(bool startPress)
@@ -119,7 +149,7 @@ namespace Dev.Input
             if (_state == AimingState.NONE && startPress)
             {
                 _state = AimingState.SLING_OR_THROW;
-                _currentAimable = _sling;
+                _currentAimable = _throw;
                 StartAiming();
             }
             else if (_state == AimingState.SLING_OR_THROW && !startPress)
@@ -155,24 +185,31 @@ namespace Dev.Input
 
         private void StartAiming()
         {
+            _playerMovable.IsRotateWithMovement = false;
+
             _lastAimScreenPosition = _mainCamera.WorldToScreenPoint(_currentAimable.GetInitAimingPoint());
             _inputSystem.VirtualCursor.SetCursorPosition(_lastAimScreenPosition);
 
             SetActiveTrajectory(true);
-            if (CheckRaycast(out Vector3 resultPosition, _lastAimScreenPosition))
-            {
-                _lastAimPoint = resultPosition;
-                RenderTrajectory();
-            }
+            CheckRaycastAndRenderTrajectory(_lastAimScreenPosition);
         }
 
         private void SetAimingPosition(Vector2 aimingScreenPosition)
         {
+            aimingScreenPosition = Extensions.ScreenExtansions.ClampByDistanceMultiplier(_mainCamera.WorldToScreenPoint(_currentAimable.GetAimablePosition()), aimingScreenPosition, _currentAimable.GetAimingMulltiplier());
+
             if (Vector2.Distance(_lastAimScreenPosition, aimingScreenPosition) < .1f) return;
             _lastAimScreenPosition = aimingScreenPosition;
 
-            if (CheckRaycast(out Vector3 resultPosition, aimingScreenPosition))
+            CheckRaycastAndRenderTrajectory(aimingScreenPosition);
+        }
+
+        private void CheckRaycastAndRenderTrajectory(Vector2 screenPosition)
+        {
+            if (CheckRaycast(out Vector3 resultPosition, screenPosition))
             {
+                RotatePlayer(resultPosition);
+
                 _lastAimPoint = resultPosition;
                 RenderTrajectory();
             }
@@ -185,13 +222,11 @@ namespace Dev.Input
             if (Physics.Raycast(ray, out RaycastHit hit, 100f))
             {
                 result = hit.point;
+                Debug.Log(hit.collider.name);
                 
                 if (_state == AimingState.HERD_TARGET)
                 {
-                    Vector3 startNavCheckPosition = hit.point + Vector3.up;
-                    Vector3 endNavCheckPosition = hit.point - Vector3.up;
-
-                    if (!NavMesh.Raycast(startNavCheckPosition, endNavCheckPosition, out NavMeshHit navHit, NavMesh.AllAreas))
+                    if (NavMesh.SamplePosition(hit.point, out var navHit, 1f, NavMesh.AllAreas))
                     {
                         result = navHit.position;
                         return true;
@@ -205,6 +240,14 @@ namespace Dev.Input
             return false;
         }
 
+        private void RotatePlayer(Vector3 aimedPoint)
+        {
+            var direction = aimedPoint - _playerMovable.Transform.position;
+            direction.y = 0f;
+
+            _playerMovable.Rotate(direction);
+        }
+
         private void SetActiveTrajectory(bool active)
         {
             if (_line.enabled == active) return;
@@ -213,11 +256,8 @@ namespace Dev.Input
 
         private void RenderTrajectory()
         {
-            Vector3[] points = new Vector3[]
-            {
-                _currentAimable.GetAimablePosition(), _lastAimPoint
-            };
-
+            var points = _currentAimable.GetTrajectory(_lastAimPoint);
+            _line.positionCount = points.Length;
             _line.SetPositions(points);
             
             float width =  _line.startWidth;
@@ -226,6 +266,8 @@ namespace Dev.Input
 
         private void CompleteAiming()
         {
+            _playerMovable.IsRotateWithMovement = true;
+
             SetActiveTrajectory(false);
             _state = AimingState.NONE;
             _currentAimable.OnAimingComplete(_lastAimPoint);

@@ -20,9 +20,8 @@ namespace Dev.Time
             set => Services.SingletoneServer.Instance.Get<GameTime>().timeScale = value;
         }
 
-        public override void OnAwake()
+        private void Awake()
         {
-            base.OnAwake();
             forceUpdate = true;
         }
 

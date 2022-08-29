@@ -1,34 +1,31 @@
 using UnityEngine;
-using Dev.Core;
-using Dev.Time;
-using System.Collections.Generic;
 
 namespace Dev.Movement
 {
     public interface IMovable
     {
         public bool IsBlocked { get; set; }
+        public bool IsRotateWithMovement { get; set; }
 
         public MovementJobData MoveData { get; }
         public Transform Transform { get; }
 
         public void Move(Vector2 movement);
         public void Move(Vector3 movement);
+
+        public void Rotate(Vector2 direction);
+        public void Rotate(Vector3 direction);
     }
 
-    public class BasicMovement : SmartStart, IMovable
+    public class BasicMovement : MonoBehaviour, IMovable
     {
         [SerializeField] private float _moveSpeed = 20f;
         [SerializeField] private float _rotateSpeed = 20f;
+        [SerializeField] private float _minMagnitudeToRotateWithMove = .1f;
 
-<<<<<<< Updated upstream
         public bool IsBlocked { get; set; }
-        public Vector3 MoveStep { get; protected set; }
-=======
-        private bool _isBlocked;
-
+        public bool IsRotateWithMovement { get; set; }
         public MovementJobData MoveData { get; protected set; }
->>>>>>> Stashed changes
         public Transform Transform{ get => transform; }
 
         public float MoveSpeed 
@@ -43,15 +40,15 @@ namespace Dev.Movement
             set => _rotateSpeed = value;
         }
         
-        protected override void OnEnabled()
+        private void OnEnable()
         {
-            base.OnEnabled();
+            IsRotateWithMovement = true;
+
             Dev.Services.SingletoneServer.Instance.Get<BasicMovementHandler>().AddBasicMovement(this);
         }
 
-        protected override void OnDisabled()
+        private void OnDisable()
         {
-            base.OnDisabled();
             Dev.Services.SingletoneServer.Instance.Get<BasicMovementHandler>().RemoveBasicMovement(this);
         }
 
@@ -63,13 +60,7 @@ namespace Dev.Movement
 
         public void Move(Vector2 input)
         {
-<<<<<<< Updated upstream
-            if (IsBlocked) return;
-            
-            Vector3 movement = new Vector3(input.x, 0f, input.y);
-=======
             var movement = new Vector3(input.x, 0f, input.y);
->>>>>>> Stashed changes
             Move(movement);
         }
 
@@ -86,21 +77,13 @@ namespace Dev.Movement
 
         public void Move(Vector3 movement)
         {
-<<<<<<< Updated upstream
-            if (IsBlocked) return;
-            
-            // var deltaTime = GameTime.DeltaTime;
-            MoveStep = _speed * movement;
-            // MoveStep = _speed * deltaTime * movement;
-            
-            // Debug.Log($"Move: deltatime: {deltaTime} == {MoveStep}");
-=======
             var moveData = MoveData;
-            moveData.Movement = movement;
+            moveData.Movement = movement.normalized;
             moveData.MoveSpeed = _moveSpeed;
 
             MoveData = moveData;
->>>>>>> Stashed changes
+
+            if (IsRotateWithMovement && movement.magnitude >= _minMagnitudeToRotateWithMove) Rotate(moveData.Movement);
         }
     }
 }

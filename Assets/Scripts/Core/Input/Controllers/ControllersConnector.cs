@@ -11,14 +11,12 @@ namespace Dev.Input
         void InitializeController(ControllersConnector connector);
     }
 
-    public class ControllersConnector: SmartAwake
+    public class ControllersConnector: MonoBehaviour
     {
         [SerializeField] private List<IController> _controllers = new List<IController>();
 
-        public override void OnAwake()
+        private void Awake()
         {
-            base.OnAwake();
-
             if (World.GetWorld().AddSingleComponent(this))
             {
                 InitializeControllers();

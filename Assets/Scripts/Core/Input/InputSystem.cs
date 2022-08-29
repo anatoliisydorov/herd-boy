@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using Dev.Services;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Layouts;
-using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.Users;
 using static Dev.Input.InputActions;
 
@@ -135,11 +133,11 @@ namespace Dev.Input
         {
             if (_holdProcesses.ContainsKey(actionName))
             {
-                SingletoneServer.Instance.Get<CoroutinesSystem>().EndCouroutine(_holdProcesses[actionName]);
+                CoroutinesSystem.EndCouroutine(_holdProcesses[actionName]);
                 _holdProcesses.Remove(actionName);
             }
 
-            Coroutine holdProcess = SingletoneServer.Instance.Get<CoroutinesSystem>().BeginCoroutine(YIELD_HoldProcess(actionName, actionToCall));
+            Coroutine holdProcess = CoroutinesSystem.BeginCoroutine(YIELD_HoldProcess(actionName, actionToCall));
             _holdProcesses.Add(actionName, holdProcess);
         }
 

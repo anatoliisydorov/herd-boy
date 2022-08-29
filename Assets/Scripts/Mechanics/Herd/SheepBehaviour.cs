@@ -18,7 +18,7 @@ namespace Dev.Herd
     }
 
     [RequireComponent(typeof(NavMeshAgent))]
-    public class SheepBehaviour: SmartAwake
+    public class SheepBehaviour: MonoBehaviour
     {
         private float _moveRadius;
         private Vector3 _moveLocalOffset;
@@ -30,10 +30,8 @@ namespace Dev.Herd
         private HerdBehaviour _herdBehaviour;
         private NavMeshAgent _agent;
 
-        public override void OnAwake()
+        private void Awake()
         {
-            base.OnAwake();
-
             _agent = GetComponent<NavMeshAgent>();
         }
 
@@ -70,11 +68,10 @@ namespace Dev.Herd
 
         private void DelayedUpdatePosition()
         {
-            var coroutineSystem = SingletoneServer.Instance.Get<CoroutinesSystem>();
             if (_delayedUpdatePositionCoroutine != null)
-                coroutineSystem.EndCouroutine(_delayedUpdatePositionCoroutine);
+                CoroutinesSystem.EndCouroutine(_delayedUpdatePositionCoroutine);
             
-            _delayedUpdatePositionCoroutine = coroutineSystem.BeginCoroutine(YIELD_DelayedUpdatePosition());
+            _delayedUpdatePositionCoroutine = CoroutinesSystem.BeginCoroutine(YIELD_DelayedUpdatePosition());
         }
 
         private IEnumerator YIELD_DelayedUpdatePosition()

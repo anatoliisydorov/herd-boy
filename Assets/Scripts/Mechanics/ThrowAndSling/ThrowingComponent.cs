@@ -1,34 +1,50 @@
-﻿using Dev.Core;
-using Dev.Movement;
+﻿using Dev.Actions;
 using Dev.ObjectsManagement;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
 namespace Dev.AimableMechanics
 {
-    [RequireComponent(typeof(BasicMovement))]
-    public class ThrowingComponent : MonoBehaviour, IThrowable
+    public abstract class ThrowingComponent : MonoBehaviour, IThrowable
     {
-        [SerializeField] private float _speed = 10f;
         [SerializeField] private AssetReference _stopParticlesAsset;
+        [SerializeField] private TriggerActions _trigger;
 
-        private BasicMovement _movement;
+        protected abstract void OnThrow(Vector3 targetPoint);
 
         private void Awake()
         {
-            _movement = GetComponent<BasicMovement>();
-            _movement.MoveSpeed = _speed;
+            if (_trigger != null)
+            {
+                _trigger.OnTriggerEnterCall += OnTriggerEnterCall;
+            }
         }
 
-        public virtual void Throw(Vector3 direction)
+        private void OnDestroy()
         {
-            _movement.Move(direction);
-            _movement.IsBlocked = false;
+            if (_trigger != null)
+            {
+                _trigger.OnTriggerEnterCall -= OnTriggerEnterCall;
+            }
+        }
+
+        public void Throw(Vector3 targetPoint)
+        {
+            OnThrow(targetPoint);
+        }
+
+        public virtual float GetMass()
+        {
+            return 1f;
+        }
+
+        public virtual Vector3 CalculateVelocity(Vector3 aimingPoint)
+        {
+            return aimingPoint - transform.position;
         }
 
         protected virtual void Stop()
         {
-            _movement.IsBlocked = true;
             if (_stopParticlesAsset != null)
             {
                 GamePool.GetPoolable<ParticlePoolable>(_stopParticlesAsset, transform.position, transform.rotation);
@@ -36,14 +52,12 @@ namespace Dev.AimableMechanics
                 {
                     poolable.Deactivate();
                 }
-                //Instantiate(_stopParticles, transform.position, transform.rotation);
             }
         }
 
-        private void OnTriggerEnter(Collider other)
+        private void OnTriggerEnterCall(Collider collider)
         {
-            if (!other.isTrigger)
-                Stop();
+            Stop();
         }
     }
 }

@@ -8,26 +8,31 @@ namespace Dev.Core
         public void OnUpdate();
     }
 
-    public class SmartUpdate: SmartStart, ISmartUpdatable
+    public interface ISmartLateUpdatable
     {
+        public void OnLateUpdate();
+    }
+
+    public class SmartUpdate: MonoBehaviour, ISmartUpdatable, ISmartLateUpdatable
+    {
+        [SerializeField] protected bool enableLateUpdate;
         protected bool forceUpdate;
 
-        protected override void OnEnabled()
+        protected virtual void OnEnable()
         {
-            base.OnEnabled();
-
             if (forceUpdate) SingletoneServer.Instance.Get<CoreUpdater>().AddForceUpdate(this);
             else SingletoneServer.Instance.Get<CoreUpdater>().AddUpdate(this);
+
+            if (enableLateUpdate) SingletoneServer.Instance.Get<CoreUpdater>().AddForceUpdate(this);
         }
 
-        protected override void OnDisabled()
+        protected virtual void OnDisable()
         {
-            base.OnDisabled();
-
             if (forceUpdate) SingletoneServer.Instance.Get<CoreUpdater>().RemoveForceUpdate(this);
             else SingletoneServer.Instance.Get<CoreUpdater>().RemoveUpdate(this);
         }
 
         public virtual void OnUpdate() { }
+        public virtual void OnLateUpdate() { }
     }
 }

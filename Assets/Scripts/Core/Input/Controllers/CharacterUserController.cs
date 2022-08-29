@@ -1,6 +1,4 @@
 using Dev.Character;
-using Dev.Core;
-using Dev.Movement;
 using Dev.Services;
 using UnityEngine;
 
@@ -13,16 +11,13 @@ namespace Dev.Input
         private Transform _cameraTransform;
         private PlayerCharacter _player;
 
-        public override void OnAwake()
+        private void Awake()
         {
-            base.OnAwake();
-
             _inputSystem = SingletoneServer.Instance.Get<InputSystem>();
         }
 
-        public override void OnStart()
+        private void Start()
         {
-            base.OnStart();
             if (Camera.main != null)
                 _cameraTransform = Camera.main.transform;
 
@@ -30,18 +25,20 @@ namespace Dev.Input
                 _player = player;
         }
 
-        protected override void OnEnabled()
+        protected override void OnEnable()
         {
-            base.OnEnabled();
+            base.OnEnable();
 
             _inputSystem.OnMovementCall += HandleMovement;
+            _inputSystem.OnInteractCall += HandleInteract;
         }
 
-        protected override void OnDisabled()
+        protected override void OnDisable()
         {
-            base.OnDisabled();
+            base.OnDisable();
 
             _inputSystem.OnMovementCall -= HandleMovement;
+            _inputSystem.OnInteractCall -= HandleInteract;
         }
 
         private void HandleMovement(Vector2 inputMovement)
@@ -55,9 +52,12 @@ namespace Dev.Input
             cameraRight.Normalize();
 
             var moveDirection = Vector3.ClampMagnitude(cameraForward * inputMovement.y + cameraRight * inputMovement.x, 1f);
-            Debug.Log($"Move call: {moveDirection}");
-            _player.BasicMovement.Move(moveDirection.normalized);
-            if (inputMovement.magnitude > .1f) _player.BasicMovement.Rotate(moveDirection.normalized);
+            _player.BasicMovement.Move(moveDirection);
+        }
+
+        private void HandleInteract()
+        {
+            _player.Carring.SwitchPickAndPut();
         }
     }
 }
