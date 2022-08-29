@@ -11,6 +11,9 @@ namespace Dev.Movement
 
         public void Move(Vector2 movement);
         public void Move(Vector3 movement);
+
+        public void Rotate(Vector2 direction);
+        public void Rotate(Vector3 direction);
     }
 
     public class BasicMovement : MonoBehaviour, IMovable

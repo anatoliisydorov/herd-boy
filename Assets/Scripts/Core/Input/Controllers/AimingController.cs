@@ -1,3 +1,4 @@
+using Dev.Actions;
 using Dev.AimableMechanics;
 using Dev.Character;
 using Dev.Herd;
@@ -13,8 +14,6 @@ namespace Dev.Input
         HERD_TARGET = 1,
         SLING_OR_THROW = 2
     }
-
-    //public interface ITrajectoryCalculator
 
     public interface IAimable
     {
@@ -41,6 +40,7 @@ namespace Dev.Input
         private IAimable _currentAimable;
         private HerdBehaviour _herd;
         private ThrowAndSling _throw;
+        private MovementActions _playerOnMoveActions;
 
         private LineRenderer _line;
 
@@ -68,6 +68,10 @@ namespace Dev.Input
             if (World.GetWorld().GetSingleComponent(out PlayerCharacter player))
             {
                 _throw = player.Throw;
+                _playerOnMoveActions = player.OnMoveActions;
+
+                _playerOnMoveActions.OnMovementCall += UpdateTrajectoryOnMovement;
+                _playerOnMoveActions.OnRotateCall += UpdateTrajectoryOnRotate;
             }
 
             _mainCamera = Camera.main;
@@ -83,6 +87,12 @@ namespace Dev.Input
         {
             base.OnEnable();
 
+            if (_playerOnMoveActions != null)
+            {
+                _playerOnMoveActions.OnMovementCall += UpdateTrajectoryOnMovement;
+                _playerOnMoveActions.OnRotateCall += UpdateTrajectoryOnRotate;
+            }
+
             InputSystem.OnHerdTargetCall += HandleHerdTarget;
             InputSystem.OnSlingOrThrowCall += HandleSlingOrThrow;
             InputSystem.OnMouseAimingCall += HandleMouseAiming;
@@ -92,11 +102,33 @@ namespace Dev.Input
         protected override void OnDisable()
         {
             base.OnDisable();
-            
+
+            _playerOnMoveActions.OnMovementCall -= UpdateTrajectoryOnMovement;
+            _playerOnMoveActions.OnRotateCall -= UpdateTrajectoryOnRotate;
+
             InputSystem.OnHerdTargetCall -= HandleHerdTarget;
             InputSystem.OnSlingOrThrowCall -= HandleSlingOrThrow;
             InputSystem.OnMouseAimingCall -= HandleMouseAiming;
             InputSystem.OnGamepadAimingCall -= HandleGamepadAiming;
+        }
+
+        private void UpdateTrajectoryOnMovement(Vector3 movement)
+        {
+            if (_state == AimingState.NONE) return;
+
+            CheckRaycastAndRenderTrajectory(_lastAimScreenPosition);
+            //if (CheckRaycast(out Vector3 resultPosition, _lastAimScreenPosition))
+            //{
+            //    _lastAimPoint = resultPosition;
+            //    RenderTrajectory();
+            //}
+        }
+
+        private void UpdateTrajectoryOnRotate(Quaternion newRotation)
+        {
+            if (_state == AimingState.NONE) return;
+
+            CheckRaycastAndRenderTrajectory(_lastAimScreenPosition);
         }
 
         private void HandleHerdTarget(bool startPress)
@@ -159,11 +191,12 @@ namespace Dev.Input
             _inputSystem.VirtualCursor.SetCursorPosition(_lastAimScreenPosition);
 
             SetActiveTrajectory(true);
-            if (CheckRaycast(out Vector3 resultPosition, _lastAimScreenPosition))
-            {
-                _lastAimPoint = resultPosition;
-                RenderTrajectory();
-            }
+            CheckRaycastAndRenderTrajectory(_lastAimScreenPosition);
+            //if (CheckRaycast(out Vector3 resultPosition, _lastAimScreenPosition))
+            //{
+            //    _lastAimPoint = resultPosition;
+            //    RenderTrajectory();
+            //}
         }
 
         private void SetAimingPosition(Vector2 aimingScreenPosition)
@@ -173,7 +206,17 @@ namespace Dev.Input
             if (Vector2.Distance(_lastAimScreenPosition, aimingScreenPosition) < .1f) return;
             _lastAimScreenPosition = aimingScreenPosition;
 
-            if (CheckRaycast(out Vector3 resultPosition, aimingScreenPosition))
+            CheckRaycastAndRenderTrajectory(aimingScreenPosition);
+            //if (CheckRaycast(out Vector3 resultPosition, aimingScreenPosition))
+            //{
+            //    _lastAimPoint = resultPosition;
+            //    RenderTrajectory();
+            //}
+        }
+
+        private void CheckRaycastAndRenderTrajectory(Vector2 screenPosition)
+        {
+            if (CheckRaycast(out Vector3 resultPosition, screenPosition))
             {
                 _lastAimPoint = resultPosition;
                 RenderTrajectory();
@@ -216,11 +259,6 @@ namespace Dev.Input
             var points = _currentAimable.GetTrajectory(_lastAimPoint);
             _line.positionCount = points.Length;
             _line.SetPositions(points);
-
-            //for (int i = 1; i < points.Length; i++)
-            //    Debug.DrawLine(points[i], points[i - 1], Color.red, 10f);
-
-            //Debug.Break();
             
             float width =  _line.startWidth;
             _line.material.mainTextureScale = new Vector2(1f / width, 1.0f);

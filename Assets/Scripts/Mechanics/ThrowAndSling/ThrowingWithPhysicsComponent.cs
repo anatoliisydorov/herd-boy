@@ -45,8 +45,6 @@ namespace Dev.AimableMechanics
             var finalVelocity = velocityRotation * velocity;
             finalVelocity = Vector3.ClampMagnitude(finalVelocity, MAX_FORCE);
 
-            Debug.Log(finalVelocity);
-
             return finalVelocity;
         }
 
