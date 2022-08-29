@@ -2,6 +2,7 @@ using Dev.Actions;
 using Dev.AimableMechanics;
 using Dev.Character;
 using Dev.Herd;
+using Dev.Movement;
 using Dev.Services;
 using UnityEngine;
 using UnityEngine.AI;
@@ -41,6 +42,7 @@ namespace Dev.Input
         private HerdBehaviour _herd;
         private ThrowAndSling _throw;
         private MovementActions _playerOnMoveActions;
+        private IMovable _playerMovable;
 
         private LineRenderer _line;
 
@@ -69,6 +71,7 @@ namespace Dev.Input
             {
                 _throw = player.Throw;
                 _playerOnMoveActions = player.OnMoveActions;
+                _playerMovable = player.BasicMovement;
 
                 _playerOnMoveActions.OnMovementCall += UpdateTrajectoryOnMovement;
                 _playerOnMoveActions.OnRotateCall += UpdateTrajectoryOnRotate;
@@ -117,11 +120,6 @@ namespace Dev.Input
             if (_state == AimingState.NONE) return;
 
             CheckRaycastAndRenderTrajectory(_lastAimScreenPosition);
-            //if (CheckRaycast(out Vector3 resultPosition, _lastAimScreenPosition))
-            //{
-            //    _lastAimPoint = resultPosition;
-            //    RenderTrajectory();
-            //}
         }
 
         private void UpdateTrajectoryOnRotate(Quaternion newRotation)
@@ -187,16 +185,13 @@ namespace Dev.Input
 
         private void StartAiming()
         {
+            _playerMovable.IsRotateWithMovement = false;
+
             _lastAimScreenPosition = _mainCamera.WorldToScreenPoint(_currentAimable.GetInitAimingPoint());
             _inputSystem.VirtualCursor.SetCursorPosition(_lastAimScreenPosition);
 
             SetActiveTrajectory(true);
             CheckRaycastAndRenderTrajectory(_lastAimScreenPosition);
-            //if (CheckRaycast(out Vector3 resultPosition, _lastAimScreenPosition))
-            //{
-            //    _lastAimPoint = resultPosition;
-            //    RenderTrajectory();
-            //}
         }
 
         private void SetAimingPosition(Vector2 aimingScreenPosition)
@@ -207,17 +202,14 @@ namespace Dev.Input
             _lastAimScreenPosition = aimingScreenPosition;
 
             CheckRaycastAndRenderTrajectory(aimingScreenPosition);
-            //if (CheckRaycast(out Vector3 resultPosition, aimingScreenPosition))
-            //{
-            //    _lastAimPoint = resultPosition;
-            //    RenderTrajectory();
-            //}
         }
 
         private void CheckRaycastAndRenderTrajectory(Vector2 screenPosition)
         {
             if (CheckRaycast(out Vector3 resultPosition, screenPosition))
             {
+                RotatePlayer(resultPosition);
+
                 _lastAimPoint = resultPosition;
                 RenderTrajectory();
             }
@@ -248,6 +240,14 @@ namespace Dev.Input
             return false;
         }
 
+        private void RotatePlayer(Vector3 aimedPoint)
+        {
+            var direction = aimedPoint - _playerMovable.Transform.position;
+            direction.y = 0f;
+
+            _playerMovable.Rotate(direction);
+        }
+
         private void SetActiveTrajectory(bool active)
         {
             if (_line.enabled == active) return;
@@ -266,6 +266,8 @@ namespace Dev.Input
 
         private void CompleteAiming()
         {
+            _playerMovable.IsRotateWithMovement = true;
+
             SetActiveTrajectory(false);
             _state = AimingState.NONE;
             _currentAimable.OnAimingComplete(_lastAimPoint);

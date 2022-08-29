@@ -5,6 +5,7 @@ namespace Dev.Movement
     public interface IMovable
     {
         public bool IsBlocked { get; set; }
+        public bool IsRotateWithMovement { get; set; }
 
         public MovementJobData MoveData { get; }
         public Transform Transform { get; }
@@ -20,8 +21,10 @@ namespace Dev.Movement
     {
         [SerializeField] private float _moveSpeed = 20f;
         [SerializeField] private float _rotateSpeed = 20f;
+        [SerializeField] private float _minMagnitudeToRotateWithMove = .1f;
 
         public bool IsBlocked { get; set; }
+        public bool IsRotateWithMovement { get; set; }
         public MovementJobData MoveData { get; protected set; }
         public Transform Transform{ get => transform; }
 
@@ -39,6 +42,8 @@ namespace Dev.Movement
         
         private void OnEnable()
         {
+            IsRotateWithMovement = true;
+
             Dev.Services.SingletoneServer.Instance.Get<BasicMovementHandler>().AddBasicMovement(this);
         }
 
@@ -73,10 +78,12 @@ namespace Dev.Movement
         public void Move(Vector3 movement)
         {
             var moveData = MoveData;
-            moveData.Movement = movement;
+            moveData.Movement = movement.normalized;
             moveData.MoveSpeed = _moveSpeed;
 
             MoveData = moveData;
+
+            if (IsRotateWithMovement && movement.magnitude >= _minMagnitudeToRotateWithMove) Rotate(moveData.Movement);
         }
     }
 }

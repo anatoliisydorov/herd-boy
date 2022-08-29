@@ -52,9 +52,7 @@ namespace Dev.Input
             cameraRight.Normalize();
 
             var moveDirection = Vector3.ClampMagnitude(cameraForward * inputMovement.y + cameraRight * inputMovement.x, 1f);
-            Debug.Log($"Move call: {moveDirection}");
-            _player.BasicMovement.Move(moveDirection.normalized);
-            if (inputMovement.magnitude > .1f) _player.BasicMovement.Rotate(moveDirection.normalized);
+            _player.BasicMovement.Move(moveDirection);
         }
 
         private void HandleInteract()
