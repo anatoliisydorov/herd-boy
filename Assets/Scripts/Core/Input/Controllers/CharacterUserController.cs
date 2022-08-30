@@ -1,4 +1,5 @@
 using Dev.Character;
+using Dev.Herd;
 using Dev.Services;
 using UnityEngine;
 
@@ -10,6 +11,7 @@ namespace Dev.Input
 
         private Transform _cameraTransform;
         private PlayerCharacter _player;
+        private HerdBehaviour _herd;
 
         private void Awake()
         {
@@ -23,6 +25,8 @@ namespace Dev.Input
 
             if (World.GetWorld().GetSingleComponent(out PlayerCharacter player))
                 _player = player;
+            if (World.GetWorld().GetSingleComponent(out HerdBehaviour herd))
+                _herd = herd;
         }
 
         protected override void OnEnable()
@@ -31,6 +35,8 @@ namespace Dev.Input
 
             _inputSystem.OnMovementCall += HandleMovement;
             _inputSystem.OnInteractCall += HandleInteract;
+
+            _inputSystem.OnHerdStateCall += HandleherdStateChange;
         }
 
         protected override void OnDisable()
@@ -39,6 +45,8 @@ namespace Dev.Input
 
             _inputSystem.OnMovementCall -= HandleMovement;
             _inputSystem.OnInteractCall -= HandleInteract;
+
+            _inputSystem.OnHerdStateCall -= HandleherdStateChange;
         }
 
         private void HandleMovement(Vector2 inputMovement)
@@ -58,6 +66,11 @@ namespace Dev.Input
         private void HandleInteract()
         {
             _player.Carring.SwitchPickAndPut();
+        }
+
+        private void HandleherdStateChange()
+        {
+            _herd.SwitchState();
         }
     }
 }

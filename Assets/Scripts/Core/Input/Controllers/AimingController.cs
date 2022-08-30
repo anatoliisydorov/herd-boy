@@ -65,7 +65,6 @@ namespace Dev.Input
         private void Start()
         {
             _inputSystem = SingletoneServer.Instance.Get<InputSystem>();
-            _herd = SingletoneServer.Instance.Get<HerdBehaviour>();
 
             if (World.GetWorld().GetSingleComponent(out PlayerCharacter player))
             {
@@ -76,6 +75,8 @@ namespace Dev.Input
                 _playerOnMoveActions.OnMovementCall += UpdateTrajectoryOnMovement;
                 _playerOnMoveActions.OnRotateCall += UpdateTrajectoryOnRotate;
             }
+            if (World.GetWorld().GetSingleComponent(out HerdBehaviour herd))
+                _herd = herd;
 
             _mainCamera = Camera.main;
         }

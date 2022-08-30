@@ -1,9 +1,17 @@
+using Dev.Character;
 using Dev.Core;
 using Dev.Input;
+using Dev.Services;
 using UnityEngine;
 
 namespace Dev.Herd
 {
+    public enum HerdState
+    {
+        FOLLOW_AIM = 0,
+        FOLLOW_PLAYER = 1
+    }
+
     public class HerdBehaviour: MonoBehaviour, IAimable
     {
         [SerializeField] private SheepBehaviour[] _sheeps = new SheepBehaviour[0];
@@ -14,14 +22,35 @@ namespace Dev.Herd
 
         [SerializeField] private Transform _targetTransform;
 
+        private HerdState _currentState = HerdState.FOLLOW_AIM;
+
+        private PlayerCharacter _playerCharacter;
+
         private void Awake()
         {
-            Services.SingletoneServer.Instance.Set(this);
+            //Services.SingletoneServer.Instance.Set(this);
+            World.GetWorld().AddSingleComponent(this);
         }
 
         private void Start()
         {
             InitializeSheeps();
+            if (World.GetWorld().GetSingleComponent(out PlayerCharacter playerCharacter))
+            {
+                _playerCharacter = playerCharacter;
+                _playerCharacter.OnMoveActions.OnMovementCall += OnPlayerMove;
+            }
+        }
+
+        private void OnEnable()
+        {
+            if (_playerCharacter != null)
+                _playerCharacter.OnMoveActions.OnMovementCall += OnPlayerMove;
+        }
+
+        private void OnDisable()
+        {
+            _playerCharacter.OnMoveActions.OnMovementCall -= OnPlayerMove;
         }
 
         private void InitializeSheeps()
@@ -42,6 +71,24 @@ namespace Dev.Herd
                 };
 
                 _sheeps[i].Intialize(initInfo);
+            }
+        }
+
+        public void SwitchState()
+        {
+            var newState = _currentState == HerdState.FOLLOW_AIM ? HerdState.FOLLOW_PLAYER : HerdState.FOLLOW_AIM;
+            SetHerdState(newState);
+        }
+
+        public void SetHerdState(HerdState state)
+        {
+            if (state == _currentState) return;
+
+            _currentState = state;
+
+            if (_currentState == HerdState.FOLLOW_PLAYER)
+            {
+                UpdateTargetOnPlayerMove();
             }
         }
 
@@ -66,6 +113,7 @@ namespace Dev.Herd
 
         public void OnAimingComplete(Vector3 aimingPoint)
         {
+            SetHerdState(HerdState.FOLLOW_AIM);
             SetPosition(aimingPoint);
         }
 
@@ -82,6 +130,21 @@ namespace Dev.Herd
         public Vector3[] GetTrajectory(Vector3 aimingPoint)
         {
             return Utilities.TrajectoryBuilder.CalculateStraightTrajectory(GetAimablePosition(), aimingPoint);
+        }
+
+        private void OnPlayerMove(Vector3 movement)
+        {
+            if (_currentState != HerdState.FOLLOW_PLAYER) return;
+
+            UpdateTargetOnPlayerMove();
+        }
+
+        private void UpdateTargetOnPlayerMove()
+        {
+            var newTargetPosition = _targetTransform.position - _playerCharacter.transform.position;
+            newTargetPosition = newTargetPosition.normalized * _moveRadius * 2f + _playerCharacter.transform.position;
+
+            SetPosition(newTargetPosition);
         }
     }
 }
