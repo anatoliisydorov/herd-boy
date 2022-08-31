@@ -1,5 +1,6 @@
 using System.Collections;
 using Dev.Core;
+using Dev.Hands;
 using Dev.Services;
 using UnityEngine;
 using UnityEngine.AI;
@@ -18,8 +19,11 @@ namespace Dev.Herd
     }
 
     [RequireComponent(typeof(NavMeshAgent))]
+    [RequireComponent(typeof(CarryableItem))]
     public class SheepBehaviour: MonoBehaviour
     {
+        private static float MAX_DISTANCE_TO_CONNECT = 5f;
+
         private float _moveRadius;
         private Vector3 _moveLocalOffset;
 
@@ -30,9 +34,19 @@ namespace Dev.Herd
         private HerdBehaviour _herdBehaviour;
         private NavMeshAgent _agent;
 
+        private CarryableItem _carryable;
+
+        [SerializeField] private bool _isConnectedToHerd = true;
+
+        public bool IsConnectedToHerd => _isConnectedToHerd;
+
         private void Awake()
         {
             _agent = GetComponent<NavMeshAgent>();
+            _carryable = GetComponent<CarryableItem>();
+
+            _carryable.OnPickedUp += OnPickedUp;
+            _carryable.OnPuttedDown += OnPuttedDown;
         }
 
         public void Intialize(SheepBehaviourInitInfo initInfo)
@@ -55,6 +69,7 @@ namespace Dev.Herd
             randomAditionalOffset.Normalize();
 
             Vector3 direction = _herdBehaviour.GetSheepsTargetPoint() + _moveLocalOffset + randomAditionalOffset;
+            if (!IsConnectedToHerd) direction = transform.position + randomAditionalOffset;
 
             if (_agent.isActiveAndEnabled) _agent.isStopped = true;
             if (Physics.Raycast(direction + (Vector3.up * 5f), Vector3.down, out RaycastHit hit, 10f))
@@ -64,6 +79,30 @@ namespace Dev.Herd
             }
 
             DelayedUpdatePosition();
+        }
+
+        public void TryToConnect()
+        {
+            if (_carryable.IsCarryed) return;
+            if (Vector3.Distance(_herdBehaviour.GetSheepsTargetPoint(), transform.position) <= MAX_DISTANCE_TO_CONNECT)
+                _isConnectedToHerd = true;
+        }
+
+        private void OnPickedUp()
+        {
+            _isConnectedToHerd = false;
+            if (_agent.isActiveAndEnabled) _agent.isStopped = true;
+            if (_delayedUpdatePositionCoroutine != null)
+                CoroutinesSystem.EndCouroutine(_delayedUpdatePositionCoroutine);
+
+            _delayedUpdatePositionCoroutine = null;
+        }
+
+        private void OnPuttedDown()
+        {
+            TryToConnect();
+
+            RefreshTarget();
         }
 
         private void DelayedUpdatePosition()

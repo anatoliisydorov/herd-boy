@@ -2,6 +2,7 @@ using Dev.Character;
 using Dev.Core;
 using Dev.Input;
 using Dev.Services;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Dev.Herd
@@ -28,7 +29,6 @@ namespace Dev.Herd
 
         private void Awake()
         {
-            //Services.SingletoneServer.Instance.Set(this);
             World.GetWorld().AddSingleComponent(this);
         }
 
@@ -59,7 +59,8 @@ namespace Dev.Herd
             Vector3 offsetVector = transform.forward * offsetDistance;
             for (int i = 0; i < _sheeps.Length; i++)
             {
-                float offsetAngle = i * 120f;
+                var angle = 360 / _sheeps.Length;
+                float offsetAngle = i * angle;
                 Vector3 rotatedOffset = Quaternion.Euler(0f, offsetAngle, 0f) * offsetVector;
                 SheepBehaviourInitInfo initInfo = new SheepBehaviourInitInfo()
                 {
@@ -97,7 +98,10 @@ namespace Dev.Herd
             _targetTransform.position = targetPosition;
             for (int i = 0; i < _sheeps.Length; i++)
             {
-                _sheeps[i].RefreshTarget();
+                if (!_sheeps[i].IsConnectedToHerd)
+                    _sheeps[i].TryToConnect();
+                if (_sheeps[i].IsConnectedToHerd)
+                    _sheeps[i].RefreshTarget();
             }
         }
 

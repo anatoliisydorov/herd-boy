@@ -1,11 +1,15 @@
 ﻿using Dev.Actions;
 using Dev.AimableMechanics;
+using System;
 using UnityEngine;
 
 namespace Dev.Hands
 {
     public interface ICarryable
     {
+        public bool IsCarryed { get; }
+        public Action OnPickedUp { get; set; }
+        public Action OnPuttedDown { get; set; }
         Transform GetTransform();
         Collider GetCollider();
         void PickUp();
@@ -22,6 +26,10 @@ namespace Dev.Hands
         private ThrowingComponent _throwable;
         private Rigidbody _rigidbody;
         private Collider _collider;
+
+        public bool IsCarryed { get; private set; }
+        public Action OnPickedUp { get; set; }
+        public Action OnPuttedDown { get; set; }
 
         private void Awake()
         {
@@ -52,12 +60,18 @@ namespace Dev.Hands
         {
             _collider.enabled = false;
             _rigidbody.isKinematic = true;
+
+            IsCarryed = true;
+            OnPickedUp?.Invoke();
         }
 
         public void PutDown()
         {
             _collider.enabled = true;
             _rigidbody.isKinematic = false;
+
+            IsCarryed = false;
+            OnPuttedDown?.Invoke();
         }
     }
 }
