@@ -3,7 +3,6 @@
 namespace Dev.AimableMechanics
 {
     [RequireComponent(typeof(Rigidbody))]
-    [RequireComponent(typeof(Collider))]
     public class ThrowingWithPhysicsComponent: ThrowingComponent
     {
         private static float MAX_FORCE = 10f;

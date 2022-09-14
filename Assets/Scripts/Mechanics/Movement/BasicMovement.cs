@@ -81,6 +81,7 @@ namespace Dev.Movement
             moveData.Movement = movement.normalized;
             moveData.MoveSpeed = _moveSpeed;
 
+            if (moveData.Movement != Vector3.zero) Debug.Log(name + " -- " + moveData.Movement);
             MoveData = moveData;
 
             if (IsRotateWithMovement && movement.magnitude >= _minMagnitudeToRotateWithMove) Rotate(moveData.Movement);

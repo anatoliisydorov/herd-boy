@@ -19,13 +19,13 @@ namespace Dev.Hands
 
     [RequireComponent(typeof(ThrowingComponent))]
     [RequireComponent(typeof(Rigidbody))]
-    [RequireComponent(typeof(Collider))]
     public class CarryableItem : MonoBehaviour, ICarryable
     {
         [SerializeField] private VisibilityActions _visibilityActions;
+        [SerializeField] private Collider _collider;
+
         private ThrowingComponent _throwable;
         private Rigidbody _rigidbody;
-        private Collider _collider;
 
         public bool IsCarryed { get; private set; }
         public Action OnPickedUp { get; set; }
@@ -35,7 +35,6 @@ namespace Dev.Hands
         {
             _throwable = GetComponent<ThrowingComponent>();
             _rigidbody = GetComponent<Rigidbody>();
-            _collider = GetComponent<Collider>();
 
             _visibilityActions.OnBecomeVisibleCall += () => _rigidbody.isKinematic = false;
             _visibilityActions.OnBecomeInvisibleCall += () => _rigidbody.isKinematic = true;

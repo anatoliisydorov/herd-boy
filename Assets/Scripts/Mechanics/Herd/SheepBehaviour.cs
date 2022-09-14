@@ -1,6 +1,7 @@
 using System.Collections;
 using Dev.Core;
 using Dev.Hands;
+using Dev.Movement;
 using Dev.Services;
 using UnityEngine;
 using UnityEngine.AI;
@@ -18,7 +19,7 @@ namespace Dev.Herd
         public HerdBehaviour HerdBehaviour;
     }
 
-    [RequireComponent(typeof(NavMeshAgent))]
+    [RequireComponent(typeof(NavigatedMovement))]
     [RequireComponent(typeof(CarryableItem))]
     public class SheepBehaviour: MonoBehaviour
     {
@@ -32,7 +33,7 @@ namespace Dev.Herd
         private Coroutine _delayedUpdatePositionCoroutine;
 
         private HerdBehaviour _herdBehaviour;
-        private NavMeshAgent _agent;
+        private NavigatedMovement _movement;
 
         private CarryableItem _carryable;
 
@@ -42,7 +43,7 @@ namespace Dev.Herd
 
         private void Awake()
         {
-            _agent = GetComponent<NavMeshAgent>();
+            _movement = GetComponent<NavigatedMovement>();
             _carryable = GetComponent<CarryableItem>();
 
             _carryable.OnPickedUp += OnPickedUp;
@@ -51,7 +52,7 @@ namespace Dev.Herd
 
         public void Intialize(SheepBehaviourInitInfo initInfo)
         {
-            _moveRadius = initInfo.MoveRadius - _agent.radius;
+            _moveRadius = initInfo.MoveRadius - _movement.AgentRadius;
             _moveRadius = _moveRadius < 0f ? 0f : _moveRadius;
             _moveLocalOffset = initInfo.MoveLocalOffset;
 
@@ -71,11 +72,10 @@ namespace Dev.Herd
             Vector3 direction = _herdBehaviour.GetSheepsTargetPoint() + _moveLocalOffset + randomAditionalOffset;
             if (!IsConnectedToHerd) direction = transform.position + randomAditionalOffset;
 
-            if (_agent.isActiveAndEnabled) _agent.isStopped = true;
+            _movement.Stop();
             if (Physics.Raycast(direction + (Vector3.up * 5f), Vector3.down, out RaycastHit hit, 10f))
             {
-                _agent.isStopped = false;
-                _agent.SetDestination(hit.point);
+                _movement.MoveTo(hit.point);
             }
 
             DelayedUpdatePosition();
@@ -91,7 +91,7 @@ namespace Dev.Herd
         private void OnPickedUp()
         {
             _isConnectedToHerd = false;
-            if (_agent.isActiveAndEnabled) _agent.isStopped = true;
+            _movement.Stop();
             if (_delayedUpdatePositionCoroutine != null)
                 CoroutinesSystem.EndCouroutine(_delayedUpdatePositionCoroutine);
 
